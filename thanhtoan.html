@@ -127,11 +127,10 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Đọc thông tin sản phẩm từ thanh địa chỉ (URL)
-        const urlParams = new URLSearchParams(window.location.search);
-        const prodName = urlParams.get('name');
-        const prodPrice = urlParams.get('price');
-        const prodImg = urlParams.get('img');
+        // Đọc thông tin sản phẩm từ bộ nhớ tạm (sessionStorage) thay vì URL
+        const prodName = sessionStorage.getItem('checkout_name');
+        const prodPrice = sessionStorage.getItem('checkout_price');
+        const prodImg = sessionStorage.getItem('checkout_img');
 
         // Hiển thị lên màn hình
         if (prodName) {
@@ -139,12 +138,12 @@
             document.getElementById('display-price').innerText = prodPrice;
             document.getElementById('display-img').src = prodImg;
         } else {
-            alert("Lỗi: Không tìm thấy thông tin sản phẩm!");
+            alert("Lỗi: Không tìm thấy thông tin sản phẩm! Vui lòng chọn lại sản phẩm.");
             window.location.href = "muahang.html";
         }
 
         // Xử lý nút chọn phương thức thanh toán
-        let paymentMethod = "COD"; // Mặc định là COD
+        let paymentMethod = "COD"; 
         const btnCod = document.getElementById('btn-cod');
         const btnQr = document.getElementById('btn-qr');
         const qrSection = document.getElementById('qr-section');

@@ -10,13 +10,12 @@
         body, html {
             overflow-x: hidden; 
             font-family: 'Segoe UI', Tahoma, sans-serif;
-            background-color: #fdfdfd; /* Nền sáng cho trang mua hàng */
+            background-color: #fdfdfd;
         }
 
-        /* --- THANH HEADER --- */
         .header {
             position: fixed; top: 0; left: 0; width: 100%; padding: 20px 40px;
-            background-color: #2a5a54; /* Đổi nền header thành màu xanh để nổi bật trên nền trắng */
+            background-color: #2a5a54; 
             display: flex; justify-content: space-between; align-items: center;
             z-index: 50; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
@@ -31,9 +30,8 @@
         }
         .top-btn:hover { background-color: #f1b347; transform: scale(1.05); color: #2a5a54; }
 
-        /* --- SECTION: CỬA HÀNG --- */
         .shop-section {
-            padding: 120px 20px 80px; /* Thêm padding-top để không bị lấp bởi header */
+            padding: 120px 20px 80px; 
             text-align: center;
             min-height: 80vh;
         }
@@ -72,7 +70,6 @@
         }
         .btn-buy-now:hover { background-color: #f1b347; color: #2a5a54; border-color: #2a5a54; }
 
-        /* --- FOOTER --- */
         .footer {
             background-color: #1f453e; border-top: 6px solid #b69d4e; 
             padding: 50px 10%; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 30px;
@@ -100,7 +97,6 @@
     <div class="header">
         <div class="brand-name">TÂM - SHOP</div>
         <div class="header-actions">
-            <!-- Nút quay lại trang chủ -->
             <a href="index.html" class="top-btn">🏠 Trang Chủ</a>
             <a href="#" class="top-btn">
                 Fanpage 
@@ -160,6 +156,14 @@
         const db = getDatabase(app);
         const productGrid = document.getElementById('product-grid');
 
+        // Hàm xử lý khi bấm nút mua hàng (Lưu vào bộ nhớ tạm)
+        window.buyProduct = function(name, price, img) {
+            sessionStorage.setItem('checkout_name', name);
+            sessionStorage.setItem('checkout_price', price);
+            sessionStorage.setItem('checkout_img', img);
+            window.location.href = 'thanhtoan.html';
+        };
+
         // Tải sản phẩm từ Firebase
         onValue(ref(db, 'products/'), (snapshot) => {
             const data = snapshot.val();
@@ -170,13 +174,16 @@
                 const products = Object.keys(data).map(key => ({ key, ...data[key] })).reverse();
                 
                 products.forEach(prod => {
+                    // Xử lý chống lỗi dấu nháy đơn trong tên sản phẩm
+                    const safeName = prod.name.replace(/'/g, "\\'");
+                    
                     productGrid.innerHTML += `
                         <div class="product-card">
                             <img src="${prod.image}" alt="${prod.name}" class="product-img">
                             <div class="product-info">
                                 <h3 class="product-name">${prod.name}</h3>
                                 <div class="product-price">${prod.price}</div>
-                                <a class="btn-buy-now" href="thanhtoan.html?name=${encodeURIComponent(prod.name)}&price=${encodeURIComponent(prod.price)}&img=${encodeURIComponent(prod.image)}">Mua ngay</a>
+                                <button class="btn-buy-now" onclick="buyProduct('${safeName}', '${prod.price}', '${prod.image}')">Mua ngay</button>
                             </div>
                         </div>
                     `;

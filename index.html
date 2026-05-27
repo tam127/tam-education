@@ -442,20 +442,31 @@
             closeChatBtn.addEventListener('click', () => chatPopup.classList.remove('active'));
 
             // --- LOGIC XỬ LÝ CHAT REALTIME VỚI FIREBASE ---
+            // --- LOGIC XỬ LÝ CHAT REALTIME CÁ NHÂN HÓA ---
             let isBotActive = true; 
             const chatBody = document.querySelector('.chat-body');
             const chatInput = document.getElementById('chat-input');
             const sendBtn = document.getElementById('send-btn');
 
+            // 1. TẠO HOẶC LẤY ID RIÊNG CHO TỪNG KHÁCH HÀNG
+            let myChatId = localStorage.getItem('tam_chat_id');
+            if (!myChatId) {
+                // Nếu khách mới vào, tạo một ID ngẫu nhiên và lưu vào trình duyệt
+                myChatId = 'guest_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('tam_chat_id', myChatId);
+            }
+
             chatInput.addEventListener('input', () => sendBtn.disabled = chatInput.value.trim() === "");
 
             setTimeout(() => {
                 if (window.db) {
+                    // Theo dõi công tắc Bot
                     window.onValue(window.ref(window.db, 'settings/bot_active'), (snapshot) => {
                         if (snapshot.exists()) isBotActive = snapshot.val();
                     });
 
-                    window.onChildAdded(window.ref(window.db, 'messages/'), (snapshot) => {
+                    // 2. CHỈ TẢI TIN NHẮN TỪ PHÒNG RIÊNG CỦA KHÁCH NÀY
+                    window.onChildAdded(window.ref(window.db, `messages/${myChatId}/`), (snapshot) => {
                         const msg = snapshot.val();
                         const bubble = document.createElement('div');
                         if (msg.sender === "Khách") {
@@ -479,8 +490,9 @@
                 const text = chatInput.value.trim();
                 if (text === "") return;
 
+                // 3. GỬI TIN NHẮN VÀO PHÒNG RIÊNG
                 if (window.push && window.ref && window.db) {
-                    window.push(window.ref(window.db, 'messages/'), {
+                    window.push(window.ref(window.db, `messages/${myChatId}/`), {
                         sender: "Khách",
                         message: text,
                         timestamp: Date.now()
@@ -498,7 +510,7 @@
                                 <a href="https://www.facebook.com/hai.anh.319492" target="_blank" class="contact-icon" style="background:#4267B2; color:white;">f</a>
                             </div>`;
                         
-                        window.push(window.ref(window.db, 'messages/'), {
+                        window.push(window.ref(window.db, `messages/${myChatId}/`), {
                             sender: "Bot",
                             message: botMsg,
                             timestamp: Date.now()

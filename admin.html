@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Dashboard - Tâm Education</title>
+    <title>Admin Dashboard - Tâm</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
         body { display: flex; height: 100vh; background: #f4f4f4; }
@@ -17,10 +17,23 @@
         th, td { padding: 12px; border: 1px solid #ddd; text-align: left; vertical-align: middle; }
         th { background: #f8f8f8; }
         
-        /* Form inputs */
         .form-control { padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; }
         .btn-primary { padding: 10px 20px; background: #2a5a54; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
         .btn-danger { padding: 5px 10px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; }
+
+        /* Giao diện Chat mới */
+        .chat-container { display: flex; height: 500px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; margin-top: 20px; }
+        .chat-sidebar { width: 30%; background: #f8f9fa; border-right: 1px solid #ddd; overflow-y: auto; }
+        .user-item { padding: 15px; border-bottom: 1px solid #ddd; cursor: pointer; transition: background 0.2s; }
+        .user-item:hover { background: #e9ecef; }
+        .user-item.active { background: #2a5a54; color: white; font-weight: bold; }
+        .chat-main { width: 70%; display: flex; flex-direction: column; background: #fff; }
+        .chat-header { padding: 15px; background: #e8f5e9; border-bottom: 1px solid #ddd; font-weight: bold; color: #2a5a54; display: flex; justify-content: space-between;}
+        .chat-history { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #fafafa; }
+        .msg-box { padding: 10px 15px; border-radius: 15px; max-width: 70%; line-height: 1.4; }
+        .msg-admin { background: #2a5a54; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .msg-guest { background: #e2e8f0; color: #333; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .chat-input-area { padding: 15px; border-top: 1px solid #ddd; display: flex; gap: 10px; background: #fff; }
     </style>
 </head>
 <body>
@@ -29,45 +42,35 @@
     <h2>Admin Panel</h2>
     <button class="tab-btn active" onclick="openTab(event, 'chat')">💬 Quản lý Chat</button>
     <button class="tab-btn" onclick="openTab(event, 'inventory')">📦 Kho hàng</button>
-    <button class="tab-btn" onclick="openTab(event, 'donations')">🎁 Quyên góp</button>
 </div>
 
 <div class="main-content">
     
     <div id="chat" class="tab-pane active">
-        <h3>Quản lý Tin nhắn & Trả lời</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3>Tin nhắn từ khách hàng</h3>
+            <button id="toggle-bot-btn" class="btn-danger" style="transition: 0.3s; padding: 8px 15px;">Đang tải trạng thái Bot...</button>
+        </div>
         
-        <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #c8e6c9;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h4 style="margin: 0;">Trò chuyện trực tiếp</h4>
-                <button id="toggle-bot-btn" class="btn-danger" style="transition: 0.3s; padding: 8px 15px;">
-                    Đang tải trạng thái Bot...
-                </button>
+        <div class="chat-container">
+            <div class="chat-sidebar" id="user-list">
+                <div style="padding: 15px; color: #666; text-align: center;">Đang tải danh sách...</div>
             </div>
-            <div style="display: flex; gap: 10px;">
-                <input type="text" id="admin-input" class="form-control" placeholder="Nhập tin nhắn trả lời khách hàng..." style="flex: 1;">
-                <button id="admin-send" class="btn-primary">Gửi tin</button>
+            
+            <div class="chat-main">
+                <div class="chat-header" id="chat-header-title">Vui lòng chọn một khách hàng bên trái</div>
+                <div class="chat-history" id="chat-history">
+                    </div>
+                <div class="chat-input-area">
+                    <input type="text" id="admin-input" class="form-control" placeholder="Nhập tin nhắn..." style="flex: 1;" disabled>
+                    <button id="admin-send" class="btn-primary" disabled>Gửi tin</button>
+                </div>
             </div>
         </div>
-
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 20%;">Thời gian</th>
-                    <th style="width: 15%;">Người gửi</th>
-                    <th style="width: 55%;">Nội dung tin nhắn</th>
-                    <th style="width: 10%;">Hành động</th>
-                </tr>
-            </thead>
-            <tbody id="chat-table-body">
-                <tr><td colspan="4" style="text-align: center;">Đang tải dữ liệu...</td></tr>
-            </tbody>
-        </table>
     </div>
 
     <div id="inventory" class="tab-pane">
         <h3>Quản lý Kho hàng</h3>
-        
         <div style="background: #fff3e0; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #ffe0b2;">
             <h4 style="margin-bottom: 15px; color: #d35400;">Thêm sản phẩm mới</h4>
             <div style="display: flex; gap: 15px; flex-wrap: wrap;">
@@ -77,7 +80,6 @@
                 <button id="add-prod-btn" class="btn-primary" style="background: #d35400;">+ Thêm sản phẩm</button>
             </div>
         </div>
-
         <table>
             <thead>
                 <tr>
@@ -93,13 +95,9 @@
         </table>
     </div>
 
-    <div id="donations" class="tab-pane">
-        <h3>Danh sách Quyên góp</h3>
-    </div>
 </div>
 
 <script>
-    // Hàm chuyển đổi Tab
     function openTab(evt, tabName) {
         document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -125,49 +123,91 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Xuất biến toàn cục để hàm HTML có thể gọi inline
-    window.db = db;
-    window.ref = ref;
-    window.remove = remove;
+    window.db = db; window.ref = ref; window.remove = remove; window.onValue = onValue;
 
     // ==========================================
-    // 1. CHỨC NĂNG CHAT (GIỮ NGUYÊN TỪ CŨ)
+    // 1. LOGIC QUẢN LÝ CHAT MỚI
     // ==========================================
-    window.deleteMessage = function(msgKey) {
-        if(confirm("Bạn có chắc chắn muốn xóa tin nhắn này không?")) {
-            window.remove(window.ref(window.db, 'messages/' + msgKey));
-        }
-    };
-
     let isBotActive = true;
     const botRef = ref(db, 'settings/bot_active');
     const toggleBtn = document.getElementById('toggle-bot-btn');
 
     onValue(botRef, (snapshot) => {
-        if (snapshot.exists()) {
-            isBotActive = snapshot.val();
-        } else {
-            isBotActive = true; 
-        }
-        
+        isBotActive = snapshot.exists() ? snapshot.val() : true;
         if (isBotActive) {
-            toggleBtn.innerHTML = "🔴 Đang Bật Bot - Nhấn để Tắt";
-            toggleBtn.style.background = "#e74c3c";
+            toggleBtn.innerHTML = "🔴 Tắt Trả lời tự động (Bot)"; toggleBtn.style.background = "#e74c3c";
         } else {
-            toggleBtn.innerHTML = "🟢 Đang Tắt Bot - Nhấn để Bật";
-            toggleBtn.style.background = "#2ecc71";
+            toggleBtn.innerHTML = "🟢 Bật Trả lời tự động (Bot)"; toggleBtn.style.background = "#2ecc71";
+        }
+    });
+    toggleBtn.addEventListener('click', () => set(botRef, !isBotActive));
+
+    let currentSelectedChatId = null;
+    let activeChatListener = null; // Biến để hủy theo dõi phòng cũ khi chuyển phòng
+    const userList = document.getElementById('user-list');
+    const chatHistory = document.getElementById('chat-history');
+    const adminInput = document.getElementById('admin-input');
+    const adminSendBtn = document.getElementById('admin-send');
+    const chatHeaderTitle = document.getElementById('chat-header-title');
+
+    // Load danh sách người dùng đã chat
+    onValue(ref(db, 'messages/'), (snapshot) => {
+        const data = snapshot.val();
+        userList.innerHTML = '';
+        if (data) {
+            Object.keys(data).forEach(chatId => {
+                const isActive = chatId === currentSelectedChatId ? 'active' : '';
+                userList.innerHTML += `
+                    <div class="user-item ${isActive}" onclick="loadChatRoom('${chatId}')">
+                        👤 Khách (${chatId.substring(6, 12)})
+                    </div>
+                `;
+            });
+        } else {
+            userList.innerHTML = '<div style="padding: 15px; color: #666; text-align: center;">Chưa có tin nhắn nào</div>';
         }
     });
 
-    toggleBtn.addEventListener('click', () => set(botRef, !isBotActive));
+    // Hàm chuyển sang phòng chat của người được chọn
+    window.loadChatRoom = function(chatId) {
+        currentSelectedChatId = chatId;
+        chatHeaderTitle.innerHTML = `Đang chat với: Khách (${chatId.substring(6, 12)}) <button onclick="deleteChatRoom('${chatId}')" class="btn-danger" style="font-size: 0.8rem;">Xóa đoạn chat</button>`;
+        adminInput.disabled = false;
+        adminSendBtn.disabled = false;
+        
+        // Cập nhật lại UI danh sách người dùng để highlight người được chọn
+        document.querySelectorAll('.user-item').forEach(el => el.classList.remove('active'));
+        event.currentTarget.classList.add('active');
 
-    const adminInput = document.getElementById('admin-input');
-    const adminSendBtn = document.getElementById('admin-send');
+        // Lấy tin nhắn của người này
+        onValue(ref(db, `messages/${chatId}/`), (snapshot) => {
+            const msgs = snapshot.val();
+            chatHistory.innerHTML = '';
+            if (msgs) {
+                Object.keys(msgs).forEach(key => {
+                    const msg = msgs[key];
+                    const isAdmin = msg.sender === "Admin" || msg.sender === "Bot";
+                    const boxClass = isAdmin ? 'msg-admin' : 'msg-guest';
+                    const senderName = msg.sender === "Bot" ? "🤖 Bot" : (msg.sender === "Admin" ? "👩‍💻 Bạn" : "Khách");
+                    
+                    chatHistory.innerHTML += `
+                        <div class="msg-box ${boxClass}">
+                            <div style="font-size: 0.75rem; margin-bottom: 3px; opacity: 0.8;">${senderName}</div>
+                            <div>${msg.message}</div>
+                        </div>
+                    `;
+                });
+                chatHistory.scrollTop = chatHistory.scrollHeight; // Cuộn xuống cuối
+            }
+        });
+    }
 
+    // Gửi tin nhắn từ Admin
     function sendAdminMessage() {
+        if (!currentSelectedChatId) return;
         const text = adminInput.value.trim();
         if(text !== "") {
-            push(ref(db, 'messages/'), {
+            push(ref(db, `messages/${currentSelectedChatId}/`), {
                 sender: "Admin",
                 message: text,
                 timestamp: Date.now()
@@ -178,37 +218,21 @@
     adminSendBtn.addEventListener('click', sendAdminMessage);
     adminInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendAdminMessage(); });
 
-    const chatTableBody = document.getElementById('chat-table-body');
-    onValue(ref(db, 'messages/'), (snapshot) => {
-        const data = snapshot.val();
-        chatTableBody.innerHTML = ''; 
-        if (data) {
-            const messages = Object.keys(data).map(key => {
-                return { key: key, ...data[key] };
-            }).reverse();
-
-            messages.forEach(msg => {
-                const timeString = msg.timestamp ? new Date(msg.timestamp).toLocaleString('vi-VN') : "";
-                const senderStyle = msg.sender === "Admin" ? "color:#e74c3c; font-weight:bold;" : "";
-                
-                chatTableBody.innerHTML += `
-                    <tr>
-                        <td>${timeString}</td>
-                        <td style="${senderStyle}">${msg.sender}</td>
-                        <td>${msg.message}</td>
-                        <td style="text-align: center;">
-                            <button onclick="deleteMessage('${msg.key}')" class="btn-danger">Xóa</button>
-                        </td>
-                    </tr>
-                `;
-            });
-        } else {
-            chatTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Chưa có tin nhắn nào.</td></tr>';
+    // Hàm Xóa toàn bộ đoạn chat của 1 khách
+    window.deleteChatRoom = function(chatId) {
+        if(confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử chat với khách hàng này?")) {
+            window.remove(window.ref(window.db, `messages/${chatId}`));
+            chatHistory.innerHTML = '';
+            chatHeaderTitle.innerHTML = 'Đã xóa đoạn chat. Vui lòng chọn khách hàng khác.';
+            adminInput.disabled = true;
+            adminSendBtn.disabled = true;
+            currentSelectedChatId = null;
         }
-    });
+    }
+
 
     // ==========================================
-    // 2. CHỨC NĂNG KHO HÀNG (MỚI THÊM)
+    // 2. CHỨC NĂNG KHO HÀNG (GIỮ NGUYÊN)
     // ==========================================
     const prodNameInput = document.getElementById('prod-name');
     const prodPriceInput = document.getElementById('prod-price');
@@ -216,68 +240,42 @@
     const addProdBtn = document.getElementById('add-prod-btn');
     const inventoryTableBody = document.getElementById('inventory-table-body');
 
-    // Hàm xóa sản phẩm
     window.deleteProduct = function(prodKey) {
         if(confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi kho hàng?")) {
             window.remove(window.ref(window.db, 'products/' + prodKey));
         }
     };
 
-    // Hàm thêm sản phẩm (Chuyển ảnh sang dạng Base64 để lưu thẳng vào Database)
     addProdBtn.addEventListener('click', () => {
         const name = prodNameInput.value.trim();
         const price = prodPriceInput.value.trim();
         const file = prodImgInput.files[0];
 
-        if(!name || !price || !file) {
-            alert("Vui lòng điền đầy đủ tên, giá và chọn hình ảnh cho sản phẩm!");
-            return;
-        }
+        if(!name || !price || !file) { alert("Vui lòng điền đủ tên, giá và ảnh!"); return; }
 
         const reader = new FileReader();
         reader.onload = function(e) {
-            const base64Img = e.target.result;
-            
-            // Push data lên Firebase node 'products'
             push(ref(db, 'products/'), {
-                name: name,
-                price: price,
-                image: base64Img,
-                timestamp: Date.now()
+                name: name, price: price, image: e.target.result, timestamp: Date.now()
             }).then(() => {
-                // Reset form sau khi đăng thành công
-                prodNameInput.value = '';
-                prodPriceInput.value = '';
-                prodImgInput.value = '';
-            }).catch(err => {
-                console.error("Lỗi khi thêm sản phẩm:", err);
-                alert("Đã xảy ra lỗi khi thêm sản phẩm.");
+                prodNameInput.value = ''; prodPriceInput.value = ''; prodImgInput.value = '';
             });
         };
-        // Đọc file dưới dạng URL Data (Base64)
         reader.readAsDataURL(file);
     });
 
-    // Hàm load và hiển thị danh sách sản phẩm
     onValue(ref(db, 'products/'), (snapshot) => {
         const data = snapshot.val();
         inventoryTableBody.innerHTML = ''; 
         if (data) {
-            const products = Object.keys(data).map(key => {
-                return { key: key, ...data[key] };
-            }).reverse(); // Xếp sản phẩm mới nhất lên đầu
-
+            const products = Object.keys(data).map(key => { return { key: key, ...data[key] }; }).reverse();
             products.forEach(prod => {
                 inventoryTableBody.innerHTML += `
                     <tr>
-                        <td style="text-align: center;">
-                            <img src="${prod.image}" alt="${prod.name}" style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd;">
-                        </td>
+                        <td style="text-align: center;"><img src="${prod.image}" style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px;"></td>
                         <td style="font-weight: bold; color: #2c3e50;">${prod.name}</td>
-                        <td style="color: #d35400; font-weight: bold; font-size: 1.1rem;">${prod.price}</td>
-                        <td style="text-align: center;">
-                            <button onclick="deleteProduct('${prod.key}')" class="btn-danger">Xóa bỏ</button>
-                        </td>
+                        <td style="color: #d35400; font-weight: bold;">${prod.price}</td>
+                        <td style="text-align: center;"><button onclick="deleteProduct('${prod.key}')" class="btn-danger">Xóa bỏ</button></td>
                     </tr>
                 `;
             });
@@ -285,7 +283,6 @@
             inventoryTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Kho hàng hiện đang trống.</td></tr>';
         }
     });
-
 </script>
 
 </body>

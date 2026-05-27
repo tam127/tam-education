@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông tin quyên góp - Tâm Education</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: #1c453c; 
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            padding: 50px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        /* --- Header --- */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 10px;
+        }
+
+        .header-icon { font-size: 5rem; }
+        .header-title {
+            color: #f1b347; font-size: 2.5rem; text-transform: uppercase; letter-spacing: 2px;
+        }
+
+        /* --- Các ô nhập thông tin --- */
+        .form-group { display: flex; flex-direction: column; gap: 10px; }
+
+        .form-control {
+            width: 100%; background-color: #bfae60; border: none;
+            padding: 20px; font-size: 1.2rem; color: #1a1a1a; outline: none;
+        }
+
+        .form-control::placeholder { color: #333333; text-align: center; }
+        .border-purple { border: 3px solid #8b5cf6; }
+
+        /* --- Khu vực thêm hình ảnh --- */
+        .upload-label { font-size: 1.2rem; margin-bottom: 5px; }
+
+        .upload-box {
+            position: relative; width: 140px; height: 140px; background-color: #bfae60;
+            display: flex; justify-content: center; align-items: center; cursor: pointer; border: 2px solid #1a1a1a;
+        }
+
+        .upload-box::before, .upload-box::after { content: ''; position: absolute; background-color: #1a1a1a; }
+        .upload-box::before { width: 60px; height: 4px; } 
+        .upload-box::after { width: 4px; height: 60px; } 
+
+        .upload-box input[type="file"] {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0; cursor: pointer;
+        }
+
+        /* --- Cụm Nút bấm --- */
+        .action-buttons { display: flex; justify-content: space-between; margin-top: 20px; }
+
+        .btn {
+            padding: 15px 40px; font-size: 1.2rem; font-weight: bold; border: none;
+            border-radius: 10px; cursor: pointer; text-decoration: none; text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .btn-submit { background-color: #f1b347; color: #1c453c; }
+        .btn-submit:hover { background-color: #dca035; transform: translateY(-3px); }
+
+        .btn-back { background-color: transparent; color: #ffffff; border: 2px solid #ffffff; }
+        .btn-back:hover { background-color: #ffffff; color: #1c453c; }
+
+        /* ========================================= */
+        /* --- HIỆU ỨNG POPUP THƯ CẢM ƠN (MỚI) --- */
+        /* ========================================= */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Lớp nền đen mờ 50% */
+            backdrop-filter: blur(8px); /* Lệnh làm mờ (blur) mọi thứ phía sau */
+            z-index: 999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            
+            /* Trạng thái ẩn ban đầu */
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.4s ease;
+        }
+
+        /* Khi được kích hoạt sẽ hiện ra */
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            position: relative;
+            /* Khởi đầu hơi thu nhỏ lại */
+            transform: scale(0.7);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Hiệu ứng nảy khi phóng to */
+            max-width: 90vw;
+            width: 700px; /* Độ to của bức thư */
+        }
+
+        /* Phóng to về kích thước thật khi được kích hoạt */
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-content img {
+            width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4); /* Đổ bóng cho bức thư nổi lên */
+            display: block;
+        }
+
+        /* Nút Tắt (X) nằm ở góc phải bức thư */
+        .close-modal {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            width: 40px;
+            height: 40px;
+            background-color: #1a1a1a;
+            color: #fff;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            transition: 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .close-modal:hover {
+            background-color: #dca035;
+            transform: scale(1.1);
+        }
+
+        /* Responsive cho điện thoại */
+        @media (max-width: 768px) {
+            .header { flex-direction: column; text-align: center; }
+            .header-title { font-size: 2rem; }
+            .action-buttons { flex-direction: column; gap: 15px; }
+            .btn { width: 100%; }
+            .close-modal { top: -10px; right: -10px; width: 35px; height: 35px; font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <div class="header-icon">🎁</div>
+            <h1 class="header-title">THÔNG TIN QUYÊN GÓP</h1>
+        </div>
+
+        <form action="#" method="POST" id="donate-form">
+            <div class="form-group">
+                <input type="text" class="form-control border-purple" placeholder="Tên sản phẩm bạn muốn quyên góp" required>
+            </div>
+
+            <div class="form-group">
+                <textarea class="form-control" rows="4" placeholder="Mô tả sản phẩm" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <div class="upload-label">Thêm hình ảnh</div>
+                <div class="upload-box">
+                    <input type="file" accept="image/*" title="Chọn hình ảnh">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <textarea class="form-control" rows="4" placeholder="Thông điệp bạn muốn gửi đến các em nhỏ"></textarea>
+            </div>
+
+            <div class="action-buttons">
+                <a href="index.html" class="btn btn-back">⬅ Quay lại trang chủ</a>
+                <button type="submit" class="btn btn-submit">GỬI THÔNG TIN</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="modal-overlay" id="thank-you-modal">
+        <div class="modal-content">
+            <button class="close-modal" id="close-modal" title="Đóng">&times;</button>
+            
+            <img src="thu-cam-on.jpg" alt="Thư cảm ơn từ Tâm Education">
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('donate-form');
+        const modal = document.getElementById('thank-you-modal');
+        const closeBtn = document.getElementById('close-modal');
+
+        // Khi người dùng bấm nút "GỬI THÔNG TIN"
+        form.addEventListener('submit', function(e) {
+            // Ngăn chặn web tự động load lại trang
+            e.preventDefault(); 
+            
+            // Hiện Popup thư cảm ơn lên
+            modal.classList.add('active'); 
+        });
+
+        // Khi người dùng bấm nút "X" để đóng thư
+        closeBtn.addEventListener('click', function() {
+            modal.classList.remove('active'); // Ẩn thư đi
+            
+            // Đợi nửa giây cho hiệu ứng ẩn xong thì chuyển người dùng về trang chủ
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 500);
+        });
+    </script>
+
+</body>
+</html>

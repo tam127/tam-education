@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán - Tâm</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #1c453c; color: #333; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 40px 20px; }
+        
+        .checkout-container { background: #fff; width: 100%; max-width: 900px; border-radius: 20px; display: flex; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.3); flex-direction: row; }
+        
+        /* Cột trái: Sản phẩm */
+        .product-summary { background: #f8f9fa; width: 40%; padding: 40px; display: flex; flex-direction: column; align-items: center; text-align: center; border-right: 1px solid #ddd; }
+        .product-summary h2 { color: #2a5a54; margin-bottom: 20px; }
+        .prod-img { width: 100%; max-width: 250px; height: 250px; object-fit: cover; border-radius: 15px; border: 2px solid #f1b347; margin-bottom: 20px; }
+        .prod-name { font-size: 1.3rem; font-weight: bold; color: #333; margin-bottom: 10px; }
+        .prod-price { font-size: 1.5rem; color: #d35400; font-weight: bold; }
+
+        /* Cột phải: Form thông tin */
+        .checkout-form { width: 60%; padding: 40px; display: flex; flex-direction: column; gap: 20px; }
+        .checkout-form h2 { color: #2a5a54; margin-bottom: 10px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group label { font-weight: bold; color: #555; }
+        .form-control { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; outline: none; }
+        .form-control:focus { border-color: #2a5a54; }
+        
+        /* Phương thức thanh toán */
+        .payment-methods { display: flex; gap: 15px; margin-top: 10px; }
+        .pay-method { flex: 1; border: 2px solid #ddd; border-radius: 10px; padding: 15px; text-align: center; cursor: pointer; transition: 0.3s; font-weight: bold; color: #666; }
+        .pay-method.active { border-color: #f1b347; background: #fffcf5; color: #d35400; }
+        
+        #qr-section { display: none; text-align: center; margin-top: 15px; background: #fdfdfd; padding: 15px; border-radius: 10px; border: 1px dashed #ccc; }
+        #qr-section img { width: 180px; height: 180px; margin-bottom: 10px; border-radius: 10px; }
+        
+        .action-btns { display: flex; gap: 15px; margin-top: 20px; }
+        .btn { flex: 1; padding: 15px; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; transition: 0.3s; }
+        .btn-cancel { background: #eee; color: #333; }
+        .btn-cancel:hover { background: #ddd; }
+        .btn-submit { background: #2a5a54; color: #f1b347; }
+        .btn-submit:hover { background: #1c453c; }
+
+        /* Popup */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 1000; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-content { background: #fff; padding: 40px; border-radius: 15px; text-align: center; max-width: 400px; transform: scale(0.8); transition: 0.3s; }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+        .modal-content h3 { color: #2a5a54; margin-bottom: 15px; font-size: 1.5rem; }
+        .modal-content p { color: #666; margin-bottom: 25px; line-height: 1.5; }
+
+        @media (max-width: 768px) {
+            .checkout-container { flex-direction: column; }
+            .product-summary, .checkout-form { width: 100%; border-right: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="checkout-container">
+        <div class="product-summary">
+            <h2>Đơn hàng của bạn</h2>
+            <img id="display-img" src="" class="prod-img" alt="Ảnh sản phẩm">
+            <div id="display-name" class="prod-name">Đang tải...</div>
+            <div id="display-price" class="prod-price">...</div>
+        </div>
+
+        <div class="checkout-form">
+            <h2>Thông tin giao hàng</h2>
+            
+            <div class="form-group">
+                <label>Họ và Tên</label>
+                <input type="text" id="cus-name" class="form-control" placeholder="Nhập họ tên của bạn" required>
+            </div>
+            <div class="form-group">
+                <label>Số điện thoại</label>
+                <input type="tel" id="cus-phone" class="form-control" placeholder="Nhập số điện thoại" required>
+            </div>
+            <div class="form-group">
+                <label>Địa chỉ nhận hàng</label>
+                <textarea id="cus-address" class="form-control" rows="3" placeholder="Nhập địa chỉ chi tiết (Số nhà, đường, xã/phường...)" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Phương thức thanh toán</label>
+                <div class="payment-methods">
+                    <div class="pay-method active" data-method="COD" id="btn-cod">Thanh toán khi nhận hàng (COD)</div>
+                    <div class="pay-method" data-method="QR" id="btn-qr">Chuyển khoản (Quét QR)</div>
+                </div>
+            </div>
+
+            <div id="qr-section">
+                <p style="color: #666; margin-bottom: 10px; font-size: 0.9rem;">Vui lòng quét mã dưới đây và giữ lại ảnh chụp màn hình bill thanh toán nếu cần.</p>
+                <img src="qr-code.png" alt="Mã QR Tâm">
+                <p style="font-weight: bold; color: #2a5a54;">Nội dung CK: TAM + Số điện thoại</p>
+            </div>
+
+            <div class="action-btns">
+                <a href="muahang.html" class="btn btn-cancel">Hủy bỏ</a>
+                <button id="btn-confirm" class="btn btn-submit">XÁC NHẬN ĐẶT HÀNG</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="success-modal">
+        <div class="modal-content">
+            <h3>🎉 Đặt hàng thành công!</h3>
+            <p>Cảm ơn bạn đã đồng hành cùng quỹ Tâm. Chúng mình sẽ liên hệ với bạn qua số điện thoại sớm nhất để xác nhận đơn hàng.</p>
+            <button class="btn btn-submit" style="width: 100%;" onclick="window.location.href='muahang.html'">Quay về Cửa hàng</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    
+        const firebaseConfig = {
+            apiKey: "AIzaSyBPyU75RUGU5UbkzecWSOjRWsIZnqqOfnM",
+            authDomain: "tameducation-chat.firebaseapp.com",
+            projectId: "tameducation-chat",
+            storageBucket: "tameducation-chat.firebasestorage.app",
+            messagingSenderId: "958617608644",
+            appId: "1:958617608644:web:0ba1e87a9c257ef8070491",
+            databaseURL: "https://tameducation-chat-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+    
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Đọc thông tin sản phẩm từ thanh địa chỉ (URL)
+        const urlParams = new URLSearchParams(window.location.search);
+        const prodName = urlParams.get('name');
+        const prodPrice = urlParams.get('price');
+        const prodImg = urlParams.get('img');
+
+        // Hiển thị lên màn hình
+        if (prodName) {
+            document.getElementById('display-name').innerText = prodName;
+            document.getElementById('display-price').innerText = prodPrice;
+            document.getElementById('display-img').src = prodImg;
+        } else {
+            alert("Lỗi: Không tìm thấy thông tin sản phẩm!");
+            window.location.href = "muahang.html";
+        }
+
+        // Xử lý nút chọn phương thức thanh toán
+        let paymentMethod = "COD"; // Mặc định là COD
+        const btnCod = document.getElementById('btn-cod');
+        const btnQr = document.getElementById('btn-qr');
+        const qrSection = document.getElementById('qr-section');
+
+        btnCod.addEventListener('click', () => {
+            btnCod.classList.add('active'); btnQr.classList.remove('active');
+            qrSection.style.display = 'none'; paymentMethod = "Thanh toán khi nhận hàng (COD)";
+        });
+
+        btnQr.addEventListener('click', () => {
+            btnQr.classList.add('active'); btnCod.classList.remove('active');
+            qrSection.style.display = 'block'; paymentMethod = "Chuyển khoản (Quét QR)";
+        });
+
+        // Xử lý khi ấn Đặt hàng
+        document.getElementById('btn-confirm').addEventListener('click', () => {
+            const name = document.getElementById('cus-name').value.trim();
+            const phone = document.getElementById('cus-phone').value.trim();
+            const address = document.getElementById('cus-address').value.trim();
+
+            if(!name || !phone || !address) {
+                alert("Vui lòng điền đầy đủ thông tin giao hàng!"); return;
+            }
+
+            document.getElementById('btn-confirm').innerText = "ĐANG XỬ LÝ...";
+            document.getElementById('btn-confirm').style.pointerEvents = "none";
+
+            // Bắn đơn hàng lên Firebase (Nhánh 'orders')
+            push(ref(db, 'orders/'), {
+                customerName: name,
+                customerPhone: phone,
+                customerAddress: address,
+                productName: prodName,
+                productPrice: prodPrice,
+                paymentMethod: paymentMethod,
+                timestamp: Date.now()
+            }).then(() => {
+                document.getElementById('success-modal').classList.add('active');
+            }).catch(err => {
+                alert("Đã xảy ra lỗi kết nối, vui lòng thử lại sau!");
+                document.getElementById('btn-confirm').innerText = "XÁC NHẬN ĐẶT HÀNG";
+                document.getElementById('btn-confirm').style.pointerEvents = "auto";
+            });
+        });
+    </script>
+</body>
+</html>

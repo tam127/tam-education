@@ -5,12 +5,27 @@
     <title>Admin Dashboard - Tâm</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
-        body { display: flex; height: 100vh; background: #f4f4f4; }
+        body { background: #f4f4f4; height: 100vh; overflow: hidden; } 
+        
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #1c453c; display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .login-box { background: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); width: 100%; max-width: 400px; text-align: center; }
+        .login-box h2 { color: #2a5a54; margin-bottom: 25px; font-size: 2rem; }
+        .login-input { width: 100%; padding: 15px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; outline: none; transition: border-color 0.3s; }
+        .login-input:focus { border-color: #f1b347; }
+        .password-wrapper { position: relative; margin-bottom: 15px; }
+        .password-wrapper .login-input { margin-bottom: 0; padding-right: 45px; }
+        .toggle-pw { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 1.2rem; user-select: none; transition: 0.2s; }
+        .toggle-pw:hover { opacity: 0.7; transform: translateY(-50%) scale(1.1); }
+        .login-btn { width: 100%; padding: 15px; background: #f1b347; color: #1c453c; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.3s; margin-top: 10px; }
+        .login-btn:hover { background: #dca035; }
+        #login-error { color: #e74c3c; font-size: 0.9rem; margin-top: 15px; display: none; font-weight: bold; }
+
+        #dashboard-content { display: none; height: 100vh; width: 100%; }
         .sidebar { width: 250px; background: #2a5a54; color: white; padding: 20px; }
         .sidebar h2 { margin-bottom: 30px; }
         .tab-btn { display: block; width: 100%; padding: 15px; background: none; border: none; color: white; text-align: left; cursor: pointer; border-bottom: 1px solid #3e7a73; }
         .tab-btn.active { background: #f1b347; color: #2a5a54; font-weight: bold; }
-        .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; background: #f4f4f4;}
         .tab-pane { display: none; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .tab-pane.active { display: block; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -21,7 +36,6 @@
         .btn-primary { padding: 10px 20px; background: #2a5a54; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
         .btn-danger { padding: 5px 10px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; }
 
-        /* Giao diện Chat mới */
         .chat-container { display: flex; height: 500px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; margin-top: 20px; }
         .chat-sidebar { width: 30%; background: #f8f9fa; border-right: 1px solid #ddd; overflow-y: auto; }
         .user-item { padding: 15px; border-bottom: 1px solid #ddd; cursor: pointer; transition: background 0.2s; }
@@ -38,66 +52,138 @@
 </head>
 <body>
 
-<div class="sidebar">
-    <h2>Admin Panel</h2>
-    <button class="tab-btn active" onclick="openTab(event, 'chat')">💬 Quản lý Chat</button>
-    <button class="tab-btn" onclick="openTab(event, 'inventory')">📦 Kho hàng</button>
+<div id="login-overlay">
+    <div class="login-box">
+        <h2>TÂM ADMIN</h2>
+        <input type="text" id="username" class="login-input" placeholder="Tên đăng nhập">
+        <div class="password-wrapper">
+            <input type="password" id="password" class="login-input" placeholder="Mật khẩu">
+            <span id="toggle-pw-btn" class="toggle-pw" title="Hiện/Ẩn mật khẩu">👁️</span>
+        </div>
+        <button id="btn-login" class="login-btn">ĐĂNG NHẬP</button>
+        <div id="login-error">Tên đăng nhập hoặc mật khẩu không chính xác!</div>
+    </div>
 </div>
 
-<div class="main-content">
-    
-    <div id="chat" class="tab-pane active">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h3>Tin nhắn từ khách hàng</h3>
-            <button id="toggle-bot-btn" class="btn-danger" style="transition: 0.3s; padding: 8px 15px;">Đang tải trạng thái Bot...</button>
+<div id="dashboard-content">
+    <div class="sidebar">
+        <h2>Admin Panel</h2>
+        <button class="tab-btn active" onclick="openTab(event, 'orders')">🛒 Đơn hàng MỚI</button>
+        <button class="tab-btn" onclick="openTab(event, 'chat')">💬 Quản lý Chat</button>
+        <button class="tab-btn" onclick="openTab(event, 'inventory')">📦 Kho hàng</button>
+        <button class="tab-btn" onclick="openTab(event, 'donations')">🎁 Quyên góp</button>
+        <button class="tab-btn" onclick="logout()" style="margin-top: 50px; color: #f1b347;">🚪 Đăng xuất</button>
+    </div>
+
+    <div class="main-content">
+        <div id="orders" class="tab-pane active">
+            <h3>Danh sách Đơn đặt hàng</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 10%;">Thời gian</th>
+                        <th style="width: 25%;">Khách hàng</th>
+                        <th style="width: 25%;">Sản phẩm</th>
+                        <th style="width: 20%;">Phương thức TT</th>
+                        <th style="width: 20%; text-align: center;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="orders-table-body">
+                    <tr><td colspan="5" style="text-align: center;">Đang tải dữ liệu...</td></tr>
+                </tbody>
+            </table>
         </div>
-        
-        <div class="chat-container">
-            <div class="chat-sidebar" id="user-list">
-                <div style="padding: 15px; color: #666; text-align: center;">Đang tải danh sách...</div>
+
+        <div id="chat" class="tab-pane">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Tin nhắn từ khách hàng</h3>
+                <button id="toggle-bot-btn" class="btn-danger" style="transition: 0.3s; padding: 8px 15px;">Đang tải trạng thái Bot...</button>
             </div>
-            
-            <div class="chat-main">
-                <div class="chat-header" id="chat-header-title">Vui lòng chọn một khách hàng bên trái</div>
-                <div class="chat-history" id="chat-history">
+            <div class="chat-container">
+                <div class="chat-sidebar" id="user-list"></div>
+                <div class="chat-main">
+                    <div class="chat-header" id="chat-header-title">Vui lòng chọn một khách hàng bên trái</div>
+                    <div class="chat-history" id="chat-history"></div>
+                    <div class="chat-input-area">
+                        <input type="text" id="admin-input" class="form-control" placeholder="Nhập tin nhắn..." style="flex: 1;" disabled>
+                        <button id="admin-send" class="btn-primary" disabled>Gửi tin</button>
                     </div>
-                <div class="chat-input-area">
-                    <input type="text" id="admin-input" class="form-control" placeholder="Nhập tin nhắn..." style="flex: 1;" disabled>
-                    <button id="admin-send" class="btn-primary" disabled>Gửi tin</button>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div id="inventory" class="tab-pane">
-        <h3>Quản lý Kho hàng</h3>
-        <div style="background: #fff3e0; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #ffe0b2;">
-            <h4 style="margin-bottom: 15px; color: #d35400;">Thêm sản phẩm mới</h4>
-            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                <input type="text" id="prod-name" class="form-control" placeholder="Tên sản phẩm..." style="flex: 2; min-width: 200px;">
-                <input type="text" id="prod-price" class="form-control" placeholder="Giá (vd: 50.000 VNĐ)" style="flex: 1; min-width: 150px;">
-                <input type="file" id="prod-img" class="form-control" accept="image/*" style="flex: 1.5; min-width: 200px; background: white;">
-                <button id="add-prod-btn" class="btn-primary" style="background: #d35400;">+ Thêm sản phẩm</button>
+        <div id="inventory" class="tab-pane">
+            <h3>Quản lý Kho hàng</h3>
+            <div style="background: #fff3e0; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #ffe0b2;">
+                <h4 style="margin-bottom: 15px; color: #d35400;">Thêm sản phẩm mới</h4>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <input type="text" id="prod-name" class="form-control" placeholder="Tên sản phẩm..." style="flex: 2; min-width: 200px;">
+                    <input type="text" id="prod-price" class="form-control" placeholder="Giá (vd: 50.000 VNĐ)" style="flex: 1; min-width: 150px;">
+                    <input type="file" id="prod-img" class="form-control" accept="image/*" style="flex: 1.5; min-width: 200px; background: white;">
+                    <button id="add-prod-btn" class="btn-primary" style="background: #d35400;">+ Thêm sản phẩm</button>
+                </div>
             </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 15%; text-align: center;">Hình ảnh</th>
+                        <th style="width: 40%;">Tên sản phẩm</th>
+                        <th style="width: 25%;">Giá tiền</th>
+                        <th style="width: 20%; text-align: center;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="inventory-table-body"></tbody>
+            </table>
         </div>
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 15%; text-align: center;">Hình ảnh</th>
-                    <th style="width: 40%;">Tên sản phẩm</th>
-                    <th style="width: 25%;">Giá tiền</th>
-                    <th style="width: 20%; text-align: center;">Hành động</th>
-                </tr>
-            </thead>
-            <tbody id="inventory-table-body">
-                <tr><td colspan="4" style="text-align: center;">Đang tải dữ liệu...</td></tr>
-            </tbody>
-        </table>
-    </div>
 
+        <div id="donations" class="tab-pane">
+            <h3>Danh sách Quyên góp (Bill chuyển khoản)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 10%; text-align: center;">STT</th>
+                        <th style="width: 25%;">Thời gian nhận</th>
+                        <th style="width: 45%; text-align: center;">Hình ảnh Bill</th>
+                        <th style="width: 20%; text-align: center;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="donations-table-body"></tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <script>
+    // LOGIC ĐĂNG NHẬP & ẨN HIỆN MẬT KHẨU
+    const loginOverlay = document.getElementById('login-overlay');
+    const dashboardContent = document.getElementById('dashboard-content');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const btnLogin = document.getElementById('btn-login');
+    const loginError = document.getElementById('login-error');
+    const togglePwBtn = document.getElementById('toggle-pw-btn');
+
+    togglePwBtn.addEventListener('click', function() {
+        if (passwordInput.type === 'password') { passwordInput.type = 'text'; togglePwBtn.textContent = '🙈'; } 
+        else { passwordInput.type = 'password'; togglePwBtn.textContent = '👁️'; }
+    });
+
+    if (sessionStorage.getItem('tam_admin_logged_in') === 'true') {
+        loginOverlay.style.display = 'none'; dashboardContent.style.display = 'flex'; document.body.style.overflow = 'auto'; 
+    }
+
+    function attemptLogin() {
+        if (usernameInput.value === 'abq2012' && passwordInput.value === 'Abq20122006@') {
+            sessionStorage.setItem('tam_admin_logged_in', 'true');
+            loginOverlay.style.display = 'none'; dashboardContent.style.display = 'flex'; document.body.style.overflow = 'auto';
+        } else { loginError.style.display = 'block'; }
+    }
+
+    btnLogin.addEventListener('click', attemptLogin);
+    passwordInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') attemptLogin(); });
+
+    function logout() { sessionStorage.removeItem('tam_admin_logged_in'); window.location.reload(); }
+
     function openTab(evt, tabName) {
         document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -122,64 +208,90 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-
     window.db = db; window.ref = ref; window.remove = remove; window.onValue = onValue;
 
-    // ==========================================
-    // 1. LOGIC QUẢN LÝ CHAT MỚI
-    // ==========================================
+    // --- 0. QUẢN LÝ ĐƠN HÀNG (MỚI) ---
+    const ordersTableBody = document.getElementById('orders-table-body');
+    
+    window.deleteOrder = function(orderKey) {
+        if(confirm("Xác nhận đã xử lý xong và muốn xóa đơn hàng này?")) {
+            window.remove(window.ref(window.db, 'orders/' + orderKey));
+        }
+    };
+
+    onValue(ref(db, 'orders/'), (snapshot) => {
+        const data = snapshot.val();
+        ordersTableBody.innerHTML = ''; 
+        if (data) {
+            const orders = Object.keys(data).map(key => ({ key, ...data[key] })).reverse();
+            orders.forEach(order => {
+                const timeString = new Date(order.timestamp).toLocaleString('vi-VN');
+                const paymentBadge = order.paymentMethod.includes('COD') ? 
+                    '<span style="background:#e8f5e9; color:#2e7d32; padding:5px 10px; border-radius:15px; font-size:0.9rem; font-weight:bold;">COD</span>' : 
+                    '<span style="background:#fff3e0; color:#ef6c00; padding:5px 10px; border-radius:15px; font-size:0.9rem; font-weight:bold;">Chuyển khoản</span>';
+
+                ordersTableBody.innerHTML += `
+                    <tr>
+                        <td style="color: #666; font-size: 0.9rem;">${timeString}</td>
+                        <td>
+                            <strong>${order.customerName}</strong><br>
+                            📞 <a href="tel:${order.customerPhone}" style="color:#2a5a54; text-decoration:none;">${order.customerPhone}</a><br>
+                            <span style="font-size: 0.85rem; color: #555;">📍 ${order.customerAddress}</span>
+                        </td>
+                        <td>
+                            <strong style="color: #2a5a54;">${order.productName}</strong><br>
+                            <span style="color: #d35400; font-weight: bold;">${order.productPrice}</span>
+                        </td>
+                        <td style="text-align: center;">${paymentBadge}</td>
+                        <td style="text-align: center;">
+                            <button onclick="deleteOrder('${order.key}')" class="btn-primary" style="background:#2ecc71;">Đã xử lý (Xóa)</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        } else {
+            ordersTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: #666;">Chưa có đơn đặt hàng nào.</td></tr>';
+        }
+    });
+
+    // --- 1. CHỨC NĂNG QUẢN LÝ CHAT ---
     let isBotActive = true;
     const botRef = ref(db, 'settings/bot_active');
     const toggleBtn = document.getElementById('toggle-bot-btn');
 
     onValue(botRef, (snapshot) => {
         isBotActive = snapshot.exists() ? snapshot.val() : true;
-        if (isBotActive) {
-            toggleBtn.innerHTML = "🔴 Tắt Trả lời tự động (Bot)"; toggleBtn.style.background = "#e74c3c";
-        } else {
-            toggleBtn.innerHTML = "🟢 Bật Trả lời tự động (Bot)"; toggleBtn.style.background = "#2ecc71";
-        }
+        if (isBotActive) { toggleBtn.innerHTML = "🔴 Tắt Trả lời tự động (Bot)"; toggleBtn.style.background = "#e74c3c"; } 
+        else { toggleBtn.innerHTML = "🟢 Bật Trả lời tự động (Bot)"; toggleBtn.style.background = "#2ecc71"; }
     });
     toggleBtn.addEventListener('click', () => set(botRef, !isBotActive));
 
     let currentSelectedChatId = null;
-    let activeChatListener = null; // Biến để hủy theo dõi phòng cũ khi chuyển phòng
     const userList = document.getElementById('user-list');
     const chatHistory = document.getElementById('chat-history');
     const adminInput = document.getElementById('admin-input');
     const adminSendBtn = document.getElementById('admin-send');
     const chatHeaderTitle = document.getElementById('chat-header-title');
 
-    // Load danh sách người dùng đã chat
     onValue(ref(db, 'messages/'), (snapshot) => {
         const data = snapshot.val();
         userList.innerHTML = '';
         if (data) {
             Object.keys(data).forEach(chatId => {
                 const isActive = chatId === currentSelectedChatId ? 'active' : '';
-                userList.innerHTML += `
-                    <div class="user-item ${isActive}" onclick="loadChatRoom('${chatId}')">
-                        👤 Khách (${chatId.substring(6, 12)})
-                    </div>
-                `;
+                userList.innerHTML += `<div class="user-item ${isActive}" onclick="loadChatRoom('${chatId}')">👤 Khách (${chatId.substring(6, 12)})</div>`;
             });
-        } else {
-            userList.innerHTML = '<div style="padding: 15px; color: #666; text-align: center;">Chưa có tin nhắn nào</div>';
-        }
+        } else { userList.innerHTML = '<div style="padding: 15px; color: #666; text-align: center;">Chưa có tin nhắn nào</div>'; }
     });
 
-    // Hàm chuyển sang phòng chat của người được chọn
     window.loadChatRoom = function(chatId) {
         currentSelectedChatId = chatId;
         chatHeaderTitle.innerHTML = `Đang chat với: Khách (${chatId.substring(6, 12)}) <button onclick="deleteChatRoom('${chatId}')" class="btn-danger" style="font-size: 0.8rem;">Xóa đoạn chat</button>`;
-        adminInput.disabled = false;
-        adminSendBtn.disabled = false;
+        adminInput.disabled = false; adminSendBtn.disabled = false;
         
-        // Cập nhật lại UI danh sách người dùng để highlight người được chọn
         document.querySelectorAll('.user-item').forEach(el => el.classList.remove('active'));
-        event.currentTarget.classList.add('active');
+        if(event.currentTarget.classList) event.currentTarget.classList.add('active');
 
-        // Lấy tin nhắn của người này
         onValue(ref(db, `messages/${chatId}/`), (snapshot) => {
             const msgs = snapshot.val();
             chatHistory.innerHTML = '';
@@ -189,51 +301,30 @@
                     const isAdmin = msg.sender === "Admin" || msg.sender === "Bot";
                     const boxClass = isAdmin ? 'msg-admin' : 'msg-guest';
                     const senderName = msg.sender === "Bot" ? "🤖 Bot" : (msg.sender === "Admin" ? "👩‍💻 Bạn" : "Khách");
-                    
-                    chatHistory.innerHTML += `
-                        <div class="msg-box ${boxClass}">
-                            <div style="font-size: 0.75rem; margin-bottom: 3px; opacity: 0.8;">${senderName}</div>
-                            <div>${msg.message}</div>
-                        </div>
-                    `;
+                    chatHistory.innerHTML += `<div class="msg-box ${boxClass}"><div style="font-size: 0.75rem; margin-bottom: 3px; opacity: 0.8;">${senderName}</div><div>${msg.message}</div></div>`;
                 });
-                chatHistory.scrollTop = chatHistory.scrollHeight; // Cuộn xuống cuối
+                chatHistory.scrollTop = chatHistory.scrollHeight;
             }
         });
     }
 
-    // Gửi tin nhắn từ Admin
     function sendAdminMessage() {
         if (!currentSelectedChatId) return;
         const text = adminInput.value.trim();
-        if(text !== "") {
-            push(ref(db, `messages/${currentSelectedChatId}/`), {
-                sender: "Admin",
-                message: text,
-                timestamp: Date.now()
-            });
-            adminInput.value = '';
-        }
+        if(text !== "") { push(ref(db, `messages/${currentSelectedChatId}/`), { sender: "Admin", message: text, timestamp: Date.now() }); adminInput.value = ''; }
     }
     adminSendBtn.addEventListener('click', sendAdminMessage);
     adminInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendAdminMessage(); });
 
-    // Hàm Xóa toàn bộ đoạn chat của 1 khách
     window.deleteChatRoom = function(chatId) {
         if(confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử chat với khách hàng này?")) {
             window.remove(window.ref(window.db, `messages/${chatId}`));
-            chatHistory.innerHTML = '';
-            chatHeaderTitle.innerHTML = 'Đã xóa đoạn chat. Vui lòng chọn khách hàng khác.';
-            adminInput.disabled = true;
-            adminSendBtn.disabled = true;
-            currentSelectedChatId = null;
+            chatHistory.innerHTML = ''; chatHeaderTitle.innerHTML = 'Đã xóa đoạn chat. Vui lòng chọn khách hàng khác.';
+            adminInput.disabled = true; adminSendBtn.disabled = true; currentSelectedChatId = null;
         }
     }
 
-
-    // ==========================================
-    // 2. CHỨC NĂNG KHO HÀNG (GIỮ NGUYÊN)
-    // ==========================================
+    // --- 2. CHỨC NĂNG KHO HÀNG ---
     const prodNameInput = document.getElementById('prod-name');
     const prodPriceInput = document.getElementById('prod-price');
     const prodImgInput = document.getElementById('prod-img');
@@ -241,47 +332,45 @@
     const inventoryTableBody = document.getElementById('inventory-table-body');
 
     window.deleteProduct = function(prodKey) {
-        if(confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi kho hàng?")) {
-            window.remove(window.ref(window.db, 'products/' + prodKey));
-        }
+        if(confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi kho hàng?")) { window.remove(window.ref(window.db, 'products/' + prodKey)); }
     };
 
     addProdBtn.addEventListener('click', () => {
-        const name = prodNameInput.value.trim();
-        const price = prodPriceInput.value.trim();
-        const file = prodImgInput.files[0];
-
+        const name = prodNameInput.value.trim(); const price = prodPriceInput.value.trim(); const file = prodImgInput.files[0];
         if(!name || !price || !file) { alert("Vui lòng điền đủ tên, giá và ảnh!"); return; }
-
         const reader = new FileReader();
         reader.onload = function(e) {
-            push(ref(db, 'products/'), {
-                name: name, price: price, image: e.target.result, timestamp: Date.now()
-            }).then(() => {
-                prodNameInput.value = ''; prodPriceInput.value = ''; prodImgInput.value = '';
-            });
+            push(ref(db, 'products/'), { name: name, price: price, image: e.target.result, timestamp: Date.now() })
+            .then(() => { prodNameInput.value = ''; prodPriceInput.value = ''; prodImgInput.value = ''; });
         };
         reader.readAsDataURL(file);
     });
 
     onValue(ref(db, 'products/'), (snapshot) => {
-        const data = snapshot.val();
-        inventoryTableBody.innerHTML = ''; 
+        const data = snapshot.val(); inventoryTableBody.innerHTML = ''; 
         if (data) {
-            const products = Object.keys(data).map(key => { return { key: key, ...data[key] }; }).reverse();
+            const products = Object.keys(data).map(key => ({ key, ...data[key] })).reverse();
             products.forEach(prod => {
-                inventoryTableBody.innerHTML += `
-                    <tr>
-                        <td style="text-align: center;"><img src="${prod.image}" style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px;"></td>
-                        <td style="font-weight: bold; color: #2c3e50;">${prod.name}</td>
-                        <td style="color: #d35400; font-weight: bold;">${prod.price}</td>
-                        <td style="text-align: center;"><button onclick="deleteProduct('${prod.key}')" class="btn-danger">Xóa bỏ</button></td>
-                    </tr>
-                `;
+                inventoryTableBody.innerHTML += `<tr><td style="text-align: center;"><img src="${prod.image}" style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px;"></td><td style="font-weight: bold; color: #2c3e50;">${prod.name}</td><td style="color: #d35400; font-weight: bold;">${prod.price}</td><td style="text-align: center;"><button onclick="deleteProduct('${prod.key}')" class="btn-danger">Xóa bỏ</button></td></tr>`;
             });
-        } else {
-            inventoryTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Kho hàng hiện đang trống.</td></tr>';
-        }
+        } else { inventoryTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Kho hàng hiện đang trống.</td></tr>'; }
+    });
+
+    // --- 3. CHỨC NĂNG QUẢN LÝ QUYÊN GÓP ---
+    const donationsTableBody = document.getElementById('donations-table-body');
+    window.deleteDonation = function(donationKey) {
+        if(confirm("Bạn có chắc chắn muốn xóa dữ liệu bill này không?")) { window.remove(window.ref(window.db, 'donations/' + donationKey)); }
+    };
+
+    onValue(ref(db, 'donations/'), (snapshot) => {
+        const data = snapshot.val(); donationsTableBody.innerHTML = ''; 
+        if (data) {
+            const donations = Object.keys(data).map(key => ({ key, ...data[key] })).reverse();
+            donations.forEach((don, index) => {
+                const timeString = don.timestamp ? new Date(don.timestamp).toLocaleString('vi-VN') : "Không rõ";
+                donationsTableBody.innerHTML += `<tr><td style="text-align: center; font-weight: bold; color: #2a5a54;">${index + 1}</td><td style="color: #555;">${timeString}</td><td style="text-align: center;"><a href="${don.image}" target="_blank" title="Bấm để xem ảnh gốc kích thước lớn"><img src="${don.image}" style="max-width: 130px; max-height: 130px; object-fit: contain; border-radius: 6px; border: 1px solid #ddd; cursor: pointer;"></a></td><td style="text-align: center;"><button onclick="deleteDonation('${don.key}')" class="btn-danger">Xóa bỏ</button></td></tr>`;
+            });
+        } else { donationsTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #666;">Chưa có lượt gửi bill quyên góp nào.</td></tr>'; }
     });
 </script>
 

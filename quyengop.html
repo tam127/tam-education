@@ -3,13 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thông tin quyên góp - Tâm Education</title>
+    <title>Thông tin quyên góp - Tâm</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body, html {
             font-family: 'Segoe UI', Tahoma, sans-serif;
@@ -17,152 +13,125 @@
             color: #ffffff;
             display: flex;
             justify-content: center;
-            padding: 50px 20px;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px 20px;
         }
 
         .container {
             width: 100%;
-            max-width: 800px;
+            max-width: 600px;
             display: flex;
             flex-direction: column;
-            gap: 30px;
+            align-items: center;
+            gap: 25px;
         }
 
         /* --- Header --- */
-        .header {
+        .header { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+        .header-icon { font-size: 4rem; line-height: 1; }
+        .header-title { color: #f1b347; font-size: 2.2rem; text-transform: uppercase; letter-spacing: 2px; }
+        .header-subtitle { color: #bfae60; font-size: 1.1rem; }
+
+        /* --- Thẻ hiển thị QR và Thông tin NH --- */
+        .qr-card {
+            background-color: #ffffff;
+            width: 100%;
+            border-radius: 20px;
+            padding: 30px;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 20px;
-            margin-bottom: 10px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
         }
 
-        .header-icon { font-size: 5rem; }
-        .header-title {
-            color: #f1b347; font-size: 2.5rem; text-transform: uppercase; letter-spacing: 2px;
+        .qr-image-wrapper {
+            width: 250px; height: 250px; background-color: #f4f4f4;
+            border: 3px solid #f1b347; border-radius: 15px; padding: 10px;
+            margin-bottom: 25px; display: flex; justify-content: center; align-items: center; overflow: hidden;
         }
+        .qr-image-wrapper img { width: 100%; height: 100%; object-fit: contain; }
 
-        /* --- Các ô nhập thông tin --- */
-        .form-group { display: flex; flex-direction: column; gap: 10px; }
-
-        .form-control {
-            width: 100%; background-color: #bfae60; border: none;
-            padding: 20px; font-size: 1.2rem; color: #1a1a1a; outline: none;
+        .bank-info {
+            width: 100%; background-color: #f8f9fa; border-radius: 12px;
+            padding: 20px; color: #1a1a1a; border: 1px solid #eee; margin-bottom: 20px;
         }
+        .info-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed #ccc; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { font-weight: 600; color: #666; font-size: 1rem; }
+        .info-value { font-weight: bold; color: #1c453c; font-size: 1.1rem; text-align: right; }
 
-        .form-control::placeholder { color: #333333; text-align: center; }
-        .border-purple { border: 3px solid #8b5cf6; }
-
-        /* --- Khu vực thêm hình ảnh --- */
-        .upload-label { font-size: 1.2rem; margin-bottom: 5px; }
-
-        .upload-box {
-            position: relative; width: 140px; height: 140px; background-color: #bfae60;
-            display: flex; justify-content: center; align-items: center; cursor: pointer; border: 2px solid #1a1a1a;
+        /* --- Khu vực tải ảnh Bill --- */
+        .upload-section {
+            width: 100%;
+            background-color: #f0fdf4;
+            border: 2px dashed #2a5a54;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s;
         }
-
-        .upload-box::before, .upload-box::after { content: ''; position: absolute; background-color: #1a1a1a; }
-        .upload-box::before { width: 60px; height: 4px; } 
-        .upload-box::after { width: 4px; height: 60px; } 
-
-        .upload-box input[type="file"] {
+        .upload-section:hover { background-color: #dcfce7; }
+        .upload-section input[type="file"] {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            opacity: 0; cursor: pointer;
+            opacity: 0; cursor: pointer; z-index: 10;
+        }
+        .upload-text { color: #2a5a54; font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; }
+        .upload-subtext { color: #666; font-size: 0.9rem; }
+        
+        #bill-preview {
+            display: none;
+            width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            margin-top: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
         }
 
         /* --- Cụm Nút bấm --- */
-        .action-buttons { display: flex; justify-content: space-between; margin-top: 20px; }
-
+        .action-buttons { display: flex; width: 100%; gap: 15px; margin-top: 10px; }
         .btn {
-            padding: 15px 40px; font-size: 1.2rem; font-weight: bold; border: none;
+            flex: 1; padding: 15px 20px; font-size: 1.1rem; font-weight: bold; border: none;
             border-radius: 10px; cursor: pointer; text-decoration: none; text-align: center;
             transition: all 0.3s ease;
         }
-
         .btn-submit { background-color: #f1b347; color: #1c453c; }
         .btn-submit:hover { background-color: #dca035; transform: translateY(-3px); }
-
         .btn-back { background-color: transparent; color: #ffffff; border: 2px solid #ffffff; }
         .btn-back:hover { background-color: #ffffff; color: #1c453c; }
 
-        /* ========================================= */
-        /* --- HIỆU ỨNG POPUP THƯ CẢM ƠN (MỚI) --- */
-        /* ========================================= */
+        /* --- HIỆU ỨNG POPUP THƯ CẢM ƠN --- */
         .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.5); /* Lớp nền đen mờ 50% */
-            backdrop-filter: blur(8px); /* Lệnh làm mờ (blur) mọi thứ phía sau */
-            z-index: 999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            
-            /* Trạng thái ẩn ban đầu */
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.4s ease;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px);
+            z-index: 999; display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: all 0.4s ease;
         }
-
-        /* Khi được kích hoạt sẽ hiện ra */
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
         .modal-content {
-            position: relative;
-            /* Khởi đầu hơi thu nhỏ lại */
-            transform: scale(0.7);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Hiệu ứng nảy khi phóng to */
-            max-width: 90vw;
-            width: 700px; /* Độ to của bức thư */
+            position: relative; transform: scale(0.7);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 90vw; width: 700px;
         }
-
-        /* Phóng to về kích thước thật khi được kích hoạt */
-        .modal-overlay.active .modal-content {
-            transform: scale(1);
-        }
-
-        .modal-content img {
-            width: 100%;
-            height: auto;
-            border-radius: 15px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.4); /* Đổ bóng cho bức thư nổi lên */
-            display: block;
-        }
-
-        /* Nút Tắt (X) nằm ở góc phải bức thư */
+        .modal-overlay.active .modal-content { transform: scale(1); }
+        .modal-content img { width: 100%; height: auto; border-radius: 15px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); display: block; }
         .close-modal {
-            position: absolute;
-            top: -15px;
-            right: -15px;
-            width: 40px;
-            height: 40px;
-            background-color: #1a1a1a;
-            color: #fff;
-            border: 2px solid #fff;
-            border-radius: 50%;
-            font-size: 1.5rem;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-            transition: 0.2s;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            position: absolute; top: -15px; right: -15px; width: 40px; height: 40px;
+            background-color: #1a1a1a; color: #fff; border: 2px solid #fff; border-radius: 50%;
+            font-size: 1.5rem; cursor: pointer; display: flex; justify-content: center; align-items: center;
+            z-index: 10; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
+        .close-modal:hover { background-color: #dca035; transform: scale(1.1); }
 
-        .close-modal:hover {
-            background-color: #dca035;
-            transform: scale(1.1);
-        }
-
-        /* Responsive cho điện thoại */
         @media (max-width: 768px) {
-            .header { flex-direction: column; text-align: center; }
-            .header-title { font-size: 2rem; }
-            .action-buttons { flex-direction: column; gap: 15px; }
-            .btn { width: 100%; }
+            .header-title { font-size: 1.8rem; }
+            .action-buttons { flex-direction: column; }
+            .qr-image-wrapper { width: 200px; height: 200px; }
+            .info-label { font-size: 0.9rem; }
+            .info-value { font-size: 1rem; }
             .close-modal { top: -10px; right: -10px; width: 35px; height: 35px; font-size: 1.2rem; }
         }
     </style>
@@ -171,64 +140,141 @@
 
     <div class="container">
         <div class="header">
-            <div class="header-icon">🎁</div>
-            <h1 class="header-title">THÔNG TIN QUYÊN GÓP</h1>
+            <div class="header-icon">💖</div>
+            <h1 class="header-title">QUỸ TÂM EDUCATION</h1>
+            <p class="header-subtitle">Quét mã QR bên dưới để lan tỏa yêu thương</p>
         </div>
 
-        <form action="#" method="POST" id="donate-form">
-            <div class="form-group">
-                <input type="text" class="form-control border-purple" placeholder="Tên sản phẩm bạn muốn quyên góp" required>
+        <div class="qr-card">
+            <div class="qr-image-wrapper">
+                <img src="qr-code.png" alt="Mã QR Chuyển Khoản">
             </div>
 
-            <div class="form-group">
-                <textarea class="form-control" rows="4" placeholder="Mô tả sản phẩm" required></textarea>
-            </div>
-
-            <div class="form-group">
-                <div class="upload-label">Thêm hình ảnh</div>
-                <div class="upload-box">
-                    <input type="file" accept="image/*" title="Chọn hình ảnh">
+            <div class="bank-info">
+                <div class="info-row">
+                    <span class="info-label">Ngân hàng:</span>
+                    <span class="info-value">MB Bank</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Chủ tài khoản:</span>
+                    <span class="info-value">NGUYEN HAI ANH</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Số tài khoản:</span>
+                    <span class="info-value">0972554569</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Nội dung CK:</span>
+                    <span class="info-value" style="color: #f1b347;">TAM [Tên của bạn]</span>
                 </div>
             </div>
 
-            <div class="form-group">
-                <textarea class="form-control" rows="4" placeholder="Thông điệp bạn muốn gửi đến các em nhỏ"></textarea>
+            <div class="upload-section">
+                <input type="file" id="bill-img" accept="image/*" title="Chọn hình ảnh bill">
+                <div id="upload-placeholder">
+                    <div class="upload-text">📸 Tải lên Bill chuyển khoản</div>
+                    <div class="upload-subtext">(Bắt buộc để chúng mình xác nhận)</div>
+                </div>
+                <img id="bill-preview" src="" alt="Ảnh Preview Bill">
             </div>
+        </div>
 
-            <div class="action-buttons">
-                <a href="index.html" class="btn btn-back">⬅ Quay lại trang chủ</a>
-                <button type="submit" class="btn btn-submit">GỬI THÔNG TIN</button>
-            </div>
-        </form>
+        <div class="action-buttons">
+            <a href="index.html" class="btn btn-back">⬅ Quay lại</a>
+            <button id="btn-done" class="btn btn-submit">TÔI ĐÃ CHUYỂN KHOẢN</button>
+        </div>
     </div>
 
     <div class="modal-overlay" id="thank-you-modal">
         <div class="modal-content">
             <button class="close-modal" id="close-modal" title="Đóng">&times;</button>
-            
-            <img src="thu-cam-on.jpg" alt="Thư cảm ơn từ Tâm Education">
+            <img src="thu-cam-on.jpg" alt="Thư cảm ơn từ Tâm">
         </div>
     </div>
 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    
+        const firebaseConfig = {
+            apiKey: "AIzaSyBPyU75RUGU5UbkzecWSOjRWsIZnqqOfnM",
+            authDomain: "tameducation-chat.firebaseapp.com",
+            projectId: "tameducation-chat",
+            storageBucket: "tameducation-chat.firebasestorage.app",
+            messagingSenderId: "958617608644",
+            appId: "1:958617608644:web:0ba1e87a9c257ef8070491",
+            databaseURL: "https://tameducation-chat-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+    
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+    
+        window.db = db;
+        window.ref = ref;
+        window.push = push;
+    </script>
+
     <script>
-        const form = document.getElementById('donate-form');
+        const btnDone = document.getElementById('btn-done');
         const modal = document.getElementById('thank-you-modal');
         const closeBtn = document.getElementById('close-modal');
+        
+        const billInput = document.getElementById('bill-img');
+        const billPreview = document.getElementById('bill-preview');
+        const uploadPlaceholder = document.getElementById('upload-placeholder');
+        
+        let billBase64 = "";
 
-        // Khi người dùng bấm nút "GỬI THÔNG TIN"
-        form.addEventListener('submit', function(e) {
-            // Ngăn chặn web tự động load lại trang
-            e.preventDefault(); 
-            
-            // Hiện Popup thư cảm ơn lên
-            modal.classList.add('active'); 
+        // Hiển thị trước ảnh Bill khi người dùng chọn file
+        billInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    billBase64 = event.target.result; // Lưu ảnh dạng Base64
+                    billPreview.src = billBase64;
+                    billPreview.style.display = 'block'; // Hiện ảnh
+                    uploadPlaceholder.style.display = 'none'; // Ẩn chữ đi
+                };
+                reader.readAsDataURL(file);
+            }
         });
 
-        // Khi người dùng bấm nút "X" để đóng thư
+        // Xử lý khi bấm nút Xác nhận
+        btnDone.addEventListener('click', function() {
+            // Yêu cầu người dùng phải up ảnh mới cho đi tiếp
+            if (billBase64 === "") {
+                alert("Bạn vui lòng tải lên hình ảnh bill chuyển khoản để chúng mình có thể xác nhận nhé!");
+                return;
+            }
+
+            // Đổi text nút thành Đang Gửi
+            btnDone.innerText = "ĐANG GỬI THÔNG TIN...";
+            btnDone.style.pointerEvents = "none";
+
+            // Bắn dữ liệu lên Firebase
+            if (window.push && window.ref && window.db) {
+                window.push(window.ref(window.db, 'donations/'), {
+                    image: billBase64,
+                    timestamp: Date.now()
+                }).then(() => {
+                    // Thành công thì hiện popup
+                    modal.classList.add('active'); 
+                    btnDone.innerText = "TÔI ĐÃ CHUYỂN KHOẢN";
+                    btnDone.style.pointerEvents = "auto";
+                }).catch(err => {
+                    alert("Có lỗi kết nối, vui lòng thử lại!");
+                    btnDone.innerText = "TÔI ĐÃ CHUYỂN KHOẢN";
+                    btnDone.style.pointerEvents = "auto";
+                });
+            }
+        });
+
+        // Khi người dùng bấm nút "X" để đóng thư cảm ơn
         closeBtn.addEventListener('click', function() {
-            modal.classList.remove('active'); // Ẩn thư đi
+            modal.classList.remove('active'); 
             
-            // Đợi nửa giây cho hiệu ứng ẩn xong thì chuyển người dùng về trang chủ
+            // Đợi nửa giây cho hiệu ứng ẩn xong thì chuyển về trang chủ
             setTimeout(() => {
                 window.location.href = 'index.html';
             }, 500);

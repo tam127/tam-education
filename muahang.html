@@ -176,7 +176,7 @@
                             <div class="product-info">
                                 <h3 class="product-name">${prod.name}</h3>
                                 <div class="product-price">${prod.price}</div>
-                                <a class="btn-buy-now" onclick="alert('Cảm ơn bạn đã quan tâm. Hãy liên hệ qua Zalo hoặc Fanpage để đặt món quà này nhé!')">Mua ngay</a>
+                                <a class="btn-buy-now" href="thanhtoan.html?name=${encodeURIComponent(prod.name)}&price=${encodeURIComponent(prod.price)}&img=${encodeURIComponent(prod.image)}">Mua ngay</a>
                             </div>
                         </div>
                     `;

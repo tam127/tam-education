@@ -37,6 +37,7 @@
         .form-control { padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; }
         .btn-primary { padding: 10px 20px; background: #2a5a54; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
         .btn-danger { padding: 5px 10px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-warning { padding: 5px 10px; background: #f39c12; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 5px; }
 
         /* Chat */
         .chat-container { display: flex; height: 500px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; margin-top: 20px; }
@@ -123,23 +124,24 @@
         <div id="inventory" class="tab-pane">
             <h3>Quản lý Kho hàng</h3>
             <div style="background: #fff3e0; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #ffe0b2;">
-                <h4 style="margin-bottom: 15px; color: #d35400;">Thêm sản phẩm mới</h4>
-                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <h4 id="inventory-form-title" style="margin-bottom: 15px; color: #d35400;">Thêm sản phẩm mới</h4>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
                     <input type="text" id="prod-name" class="form-control" placeholder="Tên sản phẩm..." style="flex: 2; min-width: 200px;">
-                    <input type="text" id="prod-color" class="form-control" placeholder="Màu sắc (vd: Đỏ, Đen, Trắng)..." style="flex: 1.5; min-width: 150px;">
+                    <input type="text" id="prod-color" class="form-control" placeholder="Màu sắc (vd: Đỏ, Trắng)..." style="flex: 1.5; min-width: 150px;">
                     <input type="text" id="prod-price" class="form-control" placeholder="Giá (vd: 50.000 VNĐ)" style="flex: 1; min-width: 150px;">
                     <input type="file" id="prod-img" class="form-control" accept="image/*" style="flex: 1.5; min-width: 200px; background: white;">
                     <button id="add-prod-btn" class="btn-primary" style="background: #d35400;">+ Thêm sản phẩm</button>
+                    <button id="cancel-edit-btn" class="btn-danger" style="display: none;" onclick="cancelEdit()">Hủy</button>
                 </div>
             </div>
             <table>
                 <thead>
                     <tr>
                         <th style="width: 15%; text-align: center;">Hình ảnh</th>
-                        <th style="width: 35%;">Tên sản phẩm</th>
+                        <th style="width: 30%;">Tên sản phẩm</th>
                         <th style="width: 15%;">Màu sắc</th>
                         <th style="width: 20%;">Giá tiền</th>
-                        <th style="width: 15%; text-align: center;">Hành động</th>
+                        <th style="width: 20%; text-align: center;">Hành động</th>
                     </tr>
                 </thead>
                 <tbody id="inventory-table-body"></tbody>
@@ -222,13 +224,11 @@
 
     // --- 0. QUẢN LÝ ĐƠN HÀNG ---
     const ordersTableBody = document.getElementById('orders-table-body');
-    
     window.deleteOrder = function(orderKey) {
         if(confirm("Xác nhận đã xử lý xong và muốn xóa đơn hàng này?")) {
             window.remove(window.ref(window.db, 'orders/' + orderKey));
         }
     };
-
     onValue(ref(db, 'orders/'), (snapshot) => {
         const data = snapshot.val();
         ordersTableBody.innerHTML = ''; 
@@ -259,9 +259,7 @@
                     </tr>
                 `;
             });
-        } else {
-            ordersTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: #666;">Chưa có đơn đặt hàng nào.</td></tr>';
-        }
+        } else { ordersTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: #666;">Chưa có đơn đặt hàng nào.</td></tr>'; }
     });
 
     // --- 1. CHỨC NĂNG QUẢN LÝ CHAT ---
@@ -284,8 +282,7 @@
     const chatHeaderTitle = document.getElementById('chat-header-title');
 
     onValue(ref(db, 'messages/'), (snapshot) => {
-        const data = snapshot.val();
-        userList.innerHTML = '';
+        const data = snapshot.val(); userList.innerHTML = '';
         if (data) {
             Object.keys(data).forEach(chatId => {
                 const isActive = chatId === currentSelectedChatId ? 'active' : '';
@@ -298,13 +295,11 @@
         currentSelectedChatId = chatId;
         chatHeaderTitle.innerHTML = `Đang chat với: Khách (${chatId.substring(6, 12)}) <button onclick="deleteChatRoom('${chatId}')" class="btn-danger" style="font-size: 0.8rem;">Xóa đoạn chat</button>`;
         adminInput.disabled = false; adminSendBtn.disabled = false;
-        
         document.querySelectorAll('.user-item').forEach(el => el.classList.remove('active'));
         if(event.currentTarget.classList) event.currentTarget.classList.add('active');
 
         onValue(ref(db, `messages/${chatId}/`), (snapshot) => {
-            const msgs = snapshot.val();
-            chatHistory.innerHTML = '';
+            const msgs = snapshot.val(); chatHistory.innerHTML = '';
             if (msgs) {
                 Object.keys(msgs).forEach(key => {
                     const msg = msgs[key];
@@ -334,54 +329,125 @@
         }
     }
 
-    // --- 2. CHỨC NĂNG KHO HÀNG (ĐÃ CẬP NHẬT BIẾN MÀU SẮC) ---
+    // --- 2. CHỨC NĂNG KHO HÀNG (THÊM & SỬA) ---
     const prodNameInput = document.getElementById('prod-name');
-    const prodColorInput = document.getElementById('prod-color'); // Selector mới
+    const prodColorInput = document.getElementById('prod-color');
     const prodPriceInput = document.getElementById('prod-price');
     const prodImgInput = document.getElementById('prod-img');
     const addProdBtn = document.getElementById('add-prod-btn');
+    const cancelEditBtn = document.getElementById('cancel-edit-btn');
+    const formTitle = document.getElementById('inventory-form-title');
     const inventoryTableBody = document.getElementById('inventory-table-body');
+
+    // Biến lưu trữ trạng thái khi đang sửa
+    let editingProductId = null;
+    let editingProductImg = null;
+    let cachedProducts = {}; // Lưu tạm danh sách sản phẩm để gọi ra khi bấm sửa
 
     window.deleteProduct = function(prodKey) {
         if(confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi kho hàng?")) { window.remove(window.ref(window.db, 'products/' + prodKey)); }
     };
 
+    // Hàm gọi khi bấm nút "Sửa"
+    window.triggerEditProduct = function(key) {
+        const prod = cachedProducts[key];
+        if(!prod) return;
+
+        editingProductId = key;
+        editingProductImg = prod.image; // Lưu lại ảnh cũ
+
+        prodNameInput.value = prod.name || '';
+        prodColorInput.value = prod.color || '';
+        prodPriceInput.value = prod.price || '';
+        prodImgInput.value = ''; // Reset input file vì không lấy lại file path được
+
+        formTitle.innerHTML = "✏️ Đang chỉnh sửa sản phẩm";
+        formTitle.style.color = "#27ae60";
+        addProdBtn.innerHTML = "💾 Cập nhật";
+        addProdBtn.style.background = "#27ae60";
+        cancelEditBtn.style.display = "inline-block";
+
+        // Cuộn lên form
+        document.getElementById('inventory').scrollIntoView({ behavior: 'smooth' });
+    };
+
+    // Hàm Hủy sửa
+    window.cancelEdit = function() {
+        editingProductId = null;
+        editingProductImg = null;
+        prodNameInput.value = ''; prodColorInput.value = ''; prodPriceInput.value = ''; prodImgInput.value = '';
+        
+        formTitle.innerHTML = "Thêm sản phẩm mới";
+        formTitle.style.color = "#d35400";
+        addProdBtn.innerHTML = "+ Thêm sản phẩm";
+        addProdBtn.style.background = "#d35400";
+        cancelEditBtn.style.display = "none";
+    };
+
+    // Nút Lưu/Cập nhật
     addProdBtn.addEventListener('click', () => {
         const name = prodNameInput.value.trim();
-        const color = prodColorInput.value.trim(); // Lấy giá trị màu sắc
+        const color = prodColorInput.value.trim();
         const price = prodPriceInput.value.trim();
         const file = prodImgInput.files[0];
         
-        if(!name || !color || !price || !file) { alert("Vui lòng điền đủ tên, màu sắc, giá và ảnh sản phẩm!"); return; }
+        if(!name || !price) { alert("Vui lòng điền tối thiểu tên và giá sản phẩm!"); return; }
+        // Ràng buộc ảnh: Nếu tạo mới phải có ảnh, nếu đang sửa thì có thể bỏ qua (dùng ảnh cũ)
+        if(!file && !editingProductId) { alert("Vui lòng chọn ảnh sản phẩm!"); return; }
 
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            push(ref(db, 'products/'), {
-                name: name,
-                color: color, // Bắn biến màu lên Firebase
-                price: price,
-                image: e.target.result,
-                timestamp: Date.now()
-            }).then(() => {
-                prodNameInput.value = ''; prodColorInput.value = ''; prodPriceInput.value = ''; prodImgInput.value = '';
-            });
-        };
-        reader.readAsDataURL(file);
+        if (file) {
+            // Có upload ảnh mới
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                saveProductData(name, color, price, e.target.result);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            // Không up ảnh mới -> Lấy ảnh cũ đang lưu
+            saveProductData(name, color, price, editingProductImg);
+        }
     });
 
+    function saveProductData(name, color, price, imgBase64) {
+        if (editingProductId) {
+            // ĐANG Ở CHẾ ĐỘ SỬA
+            set(ref(db, 'products/' + editingProductId), {
+                name: name,
+                color: color,
+                price: price,
+                image: imgBase64,
+                timestamp: Date.now() // Cập nhật thời gian mới để nhảy lên đầu
+            }).then(() => { window.cancelEdit(); });
+        } else {
+            // ĐANG Ở CHẾ ĐỘ THÊM MỚI
+            push(ref(db, 'products/'), {
+                name: name,
+                color: color,
+                price: price,
+                image: imgBase64,
+                timestamp: Date.now()
+            }).then(() => { window.cancelEdit(); });
+        }
+    }
+
     onValue(ref(db, 'products/'), (snapshot) => {
-        const data = snapshot.val(); inventoryTableBody.innerHTML = ''; 
+        const data = snapshot.val(); 
+        inventoryTableBody.innerHTML = ''; 
+        cachedProducts = data || {}; // Lưu tạm vào biến toàn cục để dùng khi bấm Edit
+
         if (data) {
             const products = Object.keys(data).map(key => ({ key, ...data[key] })).reverse();
             products.forEach(prod => {
-                // Hiển thị thêm cột màu sắc trong vòng lặp render bảng dữ liệu công khai
                 inventoryTableBody.innerHTML += `
                     <tr>
                         <td style="text-align: center;"><img src="${prod.image}" style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px;"></td>
                         <td style="font-weight: bold; color: #2c3e50;">${prod.name}</td>
                         <td style="color: #666; font-weight: 500;">${prod.color || 'Không có'}</td>
                         <td style="color: #d35400; font-weight: bold;">${prod.price}</td>
-                        <td style="text-align: center;"><button onclick="deleteProduct('${prod.key}')" class="btn-danger">Xóa bỏ</button></td>
+                        <td style="text-align: center;">
+                            <button onclick="triggerEditProduct('${prod.key}')" class="btn-warning">Sửa</button>
+                            <button onclick="deleteProduct('${prod.key}')" class="btn-danger">Xóa</button>
+                        </td>
                     </tr>
                 `;
             });
@@ -392,9 +458,7 @@
     const donationsTableBody = document.getElementById('donations-table-body');
     
     window.deleteDonation = function(donationKey) {
-        if(confirm("Bạn có chắc chắn muốn xóa dữ liệu bill này không?")) { 
-            window.remove(window.ref(window.db, 'donations/' + donationKey)); 
-        }
+        if(confirm("Bạn có chắc chắn muốn xóa dữ liệu bill này không?")) { window.remove(window.ref(window.db, 'donations/' + donationKey)); }
     };
 
     window.viewImage = function(base64String) {
@@ -403,8 +467,7 @@
     };
 
     onValue(ref(db, 'donations/'), (snapshot) => {
-        const data = snapshot.val(); 
-        donationsTableBody.innerHTML = ''; 
+        const data = snapshot.val(); donationsTableBody.innerHTML = ''; 
         if (data) {
             const donations = Object.keys(data).map(key => ({ key, ...data[key] })).reverse();
             donations.forEach((don, index) => {
@@ -416,15 +479,11 @@
                         <td style="text-align: center;">
                             <img src="${don.image}" onclick="viewImage('${don.image}')" title="Bấm để phóng to ảnh" style="max-width: 130px; max-height: 130px; object-fit: contain; border-radius: 6px; border: 1px solid #ddd; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                         </td>
-                        <td style="text-align: center;">
-                            <button onclick="deleteDonation('${don.key}')" class="btn-danger">Xóa bỏ</button>
-                        </td>
+                        <td style="text-align: center;"><button onclick="deleteDonation('${don.key}')" class="btn-danger">Xóa bỏ</button></td>
                     </tr>
                 `;
             });
-        } else { 
-            donationsTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #666;">Chưa có lượt gửi bill quyên góp nào.</td></tr>'; 
-        }
+        } else { donationsTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #666;">Chưa có lượt gửi bill quyên góp nào.</td></tr>'; }
     });
 </script>
 

@@ -7,6 +7,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
         body { background: #f4f4f4; height: 100vh; overflow: hidden; } 
         
+        /* Đăng nhập */
         #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #1c453c; display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .login-box { background: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); width: 100%; max-width: 400px; text-align: center; }
         .login-box h2 { color: #2a5a54; margin-bottom: 25px; font-size: 2rem; }
@@ -20,6 +21,7 @@
         .login-btn:hover { background: #dca035; }
         #login-error { color: #e74c3c; font-size: 0.9rem; margin-top: 15px; display: none; font-weight: bold; }
 
+        /* Dashboard */
         #dashboard-content { display: none; height: 100vh; width: 100%; }
         .sidebar { width: 250px; background: #2a5a54; color: white; padding: 20px; }
         .sidebar h2 { margin-bottom: 30px; }
@@ -36,6 +38,7 @@
         .btn-primary { padding: 10px 20px; background: #2a5a54; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
         .btn-danger { padding: 5px 10px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; }
 
+        /* Chat */
         .chat-container { display: flex; height: 500px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; margin-top: 20px; }
         .chat-sidebar { width: 30%; background: #f8f9fa; border-right: 1px solid #ddd; overflow-y: auto; }
         .user-item { padding: 15px; border-bottom: 1px solid #ddd; cursor: pointer; transition: background 0.2s; }
@@ -51,6 +54,11 @@
     </style>
 </head>
 <body>
+
+<div id="image-viewer-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; justify-content:center; align-items:center;">
+    <span onclick="document.getElementById('image-viewer-modal').style.display='none'" style="position:absolute; top:20px; right:30px; color:white; font-size:40px; font-weight:bold; cursor:pointer; transition: 0.2s;" onmouseover="this.style.color='#f1b347'" onmouseout="this.style.color='white'">&times;</span>
+    <img id="full-size-image" src="" style="max-width:90%; max-height:90%; object-fit:contain; border-radius:10px; box-shadow: 0 0 30px rgba(0,0,0,0.6);">
+</div>
 
 <div id="login-overlay">
     <div class="login-box">
@@ -210,7 +218,7 @@
     const db = getDatabase(app);
     window.db = db; window.ref = ref; window.remove = remove; window.onValue = onValue;
 
-    // --- 0. QUẢN LÝ ĐƠN HÀNG (MỚI) ---
+    // --- 0. QUẢN LÝ ĐƠN HÀNG ---
     const ordersTableBody = document.getElementById('orders-table-body');
     
     window.deleteOrder = function(orderKey) {
@@ -356,21 +364,43 @@
         } else { inventoryTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Kho hàng hiện đang trống.</td></tr>'; }
     });
 
-    // --- 3. CHỨC NĂNG QUẢN LÝ QUYÊN GÓP ---
+    // --- 3. CHỨC NĂNG QUẢN LÝ QUYÊN GÓP (ĐÃ SỬA LẠI MODAL ẢNH) ---
     const donationsTableBody = document.getElementById('donations-table-body');
+    
     window.deleteDonation = function(donationKey) {
-        if(confirm("Bạn có chắc chắn muốn xóa dữ liệu bill này không?")) { window.remove(window.ref(window.db, 'donations/' + donationKey)); }
+        if(confirm("Bạn có chắc chắn muốn xóa dữ liệu bill này không?")) { 
+            window.remove(window.ref(window.db, 'donations/' + donationKey)); 
+        }
+    };
+
+    window.viewImage = function(base64String) {
+        document.getElementById('full-size-image').src = base64String;
+        document.getElementById('image-viewer-modal').style.display = 'flex';
     };
 
     onValue(ref(db, 'donations/'), (snapshot) => {
-        const data = snapshot.val(); donationsTableBody.innerHTML = ''; 
+        const data = snapshot.val(); 
+        donationsTableBody.innerHTML = ''; 
         if (data) {
             const donations = Object.keys(data).map(key => ({ key, ...data[key] })).reverse();
             donations.forEach((don, index) => {
                 const timeString = don.timestamp ? new Date(don.timestamp).toLocaleString('vi-VN') : "Không rõ";
-                donationsTableBody.innerHTML += `<tr><td style="text-align: center; font-weight: bold; color: #2a5a54;">${index + 1}</td><td style="color: #555;">${timeString}</td><td style="text-align: center;"><a href="${don.image}" target="_blank" title="Bấm để xem ảnh gốc kích thước lớn"><img src="${don.image}" style="max-width: 130px; max-height: 130px; object-fit: contain; border-radius: 6px; border: 1px solid #ddd; cursor: pointer;"></a></td><td style="text-align: center;"><button onclick="deleteDonation('${don.key}')" class="btn-danger">Xóa bỏ</button></td></tr>`;
+                donationsTableBody.innerHTML += `
+                    <tr>
+                        <td style="text-align: center; font-weight: bold; color: #2a5a54;">${index + 1}</td>
+                        <td style="color: #555;">${timeString}</td>
+                        <td style="text-align: center;">
+                            <img src="${don.image}" onclick="viewImage('${don.image}')" title="Bấm để phóng to ảnh" style="max-width: 130px; max-height: 130px; object-fit: contain; border-radius: 6px; border: 1px solid #ddd; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        </td>
+                        <td style="text-align: center;">
+                            <button onclick="deleteDonation('${don.key}')" class="btn-danger">Xóa bỏ</button>
+                        </td>
+                    </tr>
+                `;
             });
-        } else { donationsTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #666;">Chưa có lượt gửi bill quyên góp nào.</td></tr>'; }
+        } else { 
+            donationsTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #666;">Chưa có lượt gửi bill quyên góp nào.</td></tr>'; 
+        }
     });
 </script>
 

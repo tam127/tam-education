@@ -126,6 +126,7 @@
                 <h4 style="margin-bottom: 15px; color: #d35400;">Thêm sản phẩm mới</h4>
                 <div style="display: flex; gap: 15px; flex-wrap: wrap;">
                     <input type="text" id="prod-name" class="form-control" placeholder="Tên sản phẩm..." style="flex: 2; min-width: 200px;">
+                    <input type="text" id="prod-color" class="form-control" placeholder="Màu sắc (vd: Đỏ, Đen, Trắng)..." style="flex: 1.5; min-width: 150px;">
                     <input type="text" id="prod-price" class="form-control" placeholder="Giá (vd: 50.000 VNĐ)" style="flex: 1; min-width: 150px;">
                     <input type="file" id="prod-img" class="form-control" accept="image/*" style="flex: 1.5; min-width: 200px; background: white;">
                     <button id="add-prod-btn" class="btn-primary" style="background: #d35400;">+ Thêm sản phẩm</button>
@@ -135,9 +136,10 @@
                 <thead>
                     <tr>
                         <th style="width: 15%; text-align: center;">Hình ảnh</th>
-                        <th style="width: 40%;">Tên sản phẩm</th>
-                        <th style="width: 25%;">Giá tiền</th>
-                        <th style="width: 20%; text-align: center;">Hành động</th>
+                        <th style="width: 35%;">Tên sản phẩm</th>
+                        <th style="width: 15%;">Màu sắc</th>
+                        <th style="width: 20%;">Giá tiền</th>
+                        <th style="width: 15%; text-align: center;">Hành động</th>
                     </tr>
                 </thead>
                 <tbody id="inventory-table-body"></tbody>
@@ -332,8 +334,9 @@
         }
     }
 
-    // --- 2. CHỨC NĂNG KHO HÀNG ---
+    // --- 2. CHỨC NĂNG KHO HÀNG (ĐÃ CẬP NHẬT BIẾN MÀU SẮC) ---
     const prodNameInput = document.getElementById('prod-name');
+    const prodColorInput = document.getElementById('prod-color'); // Selector mới
     const prodPriceInput = document.getElementById('prod-price');
     const prodImgInput = document.getElementById('prod-img');
     const addProdBtn = document.getElementById('add-prod-btn');
@@ -344,12 +347,24 @@
     };
 
     addProdBtn.addEventListener('click', () => {
-        const name = prodNameInput.value.trim(); const price = prodPriceInput.value.trim(); const file = prodImgInput.files[0];
-        if(!name || !price || !file) { alert("Vui lòng điền đủ tên, giá và ảnh!"); return; }
+        const name = prodNameInput.value.trim();
+        const color = prodColorInput.value.trim(); // Lấy giá trị màu sắc
+        const price = prodPriceInput.value.trim();
+        const file = prodImgInput.files[0];
+        
+        if(!name || !color || !price || !file) { alert("Vui lòng điền đủ tên, màu sắc, giá và ảnh sản phẩm!"); return; }
+
         const reader = new FileReader();
         reader.onload = function(e) {
-            push(ref(db, 'products/'), { name: name, price: price, image: e.target.result, timestamp: Date.now() })
-            .then(() => { prodNameInput.value = ''; prodPriceInput.value = ''; prodImgInput.value = ''; });
+            push(ref(db, 'products/'), {
+                name: name,
+                color: color, // Bắn biến màu lên Firebase
+                price: price,
+                image: e.target.result,
+                timestamp: Date.now()
+            }).then(() => {
+                prodNameInput.value = ''; prodColorInput.value = ''; prodPriceInput.value = ''; prodImgInput.value = '';
+            });
         };
         reader.readAsDataURL(file);
     });
@@ -359,12 +374,21 @@
         if (data) {
             const products = Object.keys(data).map(key => ({ key, ...data[key] })).reverse();
             products.forEach(prod => {
-                inventoryTableBody.innerHTML += `<tr><td style="text-align: center;"><img src="${prod.image}" style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px;"></td><td style="font-weight: bold; color: #2c3e50;">${prod.name}</td><td style="color: #d35400; font-weight: bold;">${prod.price}</td><td style="text-align: center;"><button onclick="deleteProduct('${prod.key}')" class="btn-danger">Xóa bỏ</button></td></tr>`;
+                // Hiển thị thêm cột màu sắc trong vòng lặp render bảng dữ liệu công khai
+                inventoryTableBody.innerHTML += `
+                    <tr>
+                        <td style="text-align: center;"><img src="${prod.image}" style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px;"></td>
+                        <td style="font-weight: bold; color: #2c3e50;">${prod.name}</td>
+                        <td style="color: #666; font-weight: 500;">${prod.color || 'Không có'}</td>
+                        <td style="color: #d35400; font-weight: bold;">${prod.price}</td>
+                        <td style="text-align: center;"><button onclick="deleteProduct('${prod.key}')" class="btn-danger">Xóa bỏ</button></td>
+                    </tr>
+                `;
             });
-        } else { inventoryTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Kho hàng hiện đang trống.</td></tr>'; }
+        } else { inventoryTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Kho hàng hiện đang trống.</td></tr>'; }
     });
 
-    // --- 3. CHỨC NĂNG QUẢN LÝ QUYÊN GÓP (ĐÃ SỬA LẠI MODAL ẢNH) ---
+    // --- 3. CHỨC NĂNG QUẢN LÝ QUYÊN GÓP ---
     const donationsTableBody = document.getElementById('donations-table-body');
     
     window.deleteDonation = function(donationKey) {

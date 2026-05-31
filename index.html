@@ -24,9 +24,9 @@
         /* --- THANH HEADER: HIỆU ỨNG KÍNH MỜ (GLASSMORPHISM) --- */
         .header {
             position: fixed; top: 0; left: 0; width: 100%; padding: 15px 40px;
-            background-color: rgba(42, 90, 84, 0.65); /* Trong suốt tinh tế */
+            background-color: rgba(42, 90, 84, 0.65); 
             backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px); /* Hỗ trợ Safari */
+            -webkit-backdrop-filter: blur(15px); 
             display: flex; justify-content: space-between; align-items: center;
             z-index: 100; transition: all 0.3s ease;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -144,7 +144,7 @@
         .chat-btn {
             position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px; 
             background-color: rgba(42, 90, 84, 0.9); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-            color: #f1b347; border: 2px solid #f1b347; border-radius: 50%; /* Chuyển thành nút tròn mềm mại */
+            color: #f1b347; border: 2px solid #f1b347; border-radius: 50%; 
             display: flex; justify-content: center; align-items: center; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 100; 
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -204,7 +204,7 @@
         <div class="brand-name">TÂM</div>
         <div class="header-actions">
             <button id="btn-lang" class="top-btn lang-btn" onclick="toggleLanguage()">VI</button>
-            <a href="#" class="top-btn">
+            <a href="https://www.facebook.com/profile.php?id=61590603537553" target="_blank" class="top-btn">
                 Fanpage 
                 <svg viewBox="0 0 320 512" width="14" height="14" fill="currentColor">
                     <path d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z"/>
@@ -247,8 +247,8 @@
                     <div class="project-subtitle"><span id="proj-sub1">Dự án</span> <span class="text-yellow">TÂM</span> <span id="proj-sub2">là gì ?</span></div>
                     <ul class="custom-list">
                         <li><span class="circle-num">1</span><p id="proj-item1">Đây là một dự án giáo dục phi lợi nhuận của nhóm sinh viên FPT chuyên ngành Trí tuệ nhân tạo (AI) bộ môn SSG104</p></li>
-                        <li><span class="circle-num">2</span><p id="proj-item2">Trang web tích hợp bán hàng gây quỹ, nhận đồ quyên góp từ các nhà hảo tâm</p></li>
-                        <li><span class="circle-num">3</span><p id="proj-item3">Dự án gây quỹ ủng hộ cho các em nhỏ có hoàn cảnh đặc biệt tại Mái Ấm Thiên Ân</p></li>
+                        <li><span class="circle-num">2</span><p id="proj-item2">Trang web tích hợp bán hàng gây quỹ, nhận đồ quyên góp từ các nhà hảo tâm và đăng các bài giảng liên quan đến kiến thức về việc sử dụng Trí tuệ nhân tạo (AI)</p></li>
+                        <li><span class="circle-num">3</span><p id="proj-item3">Các bài giảng trên web phù hợp cho mọi đối tượng, dễ tiếp thu và áp dụng vào cuộc sống hằng ngày</p></li>
                     </ul>
                 </div>
                 <div class="project-image-wrapper reveal-item delay-2">
@@ -265,15 +265,11 @@
             </div>
             <div class="team-text-box reveal-item delay-1">
                 <span class="team-badge" id="team-badge">MEET THE TEAM</span>
-                <h2 class="team-title">
-                    <span id="team-t1">Đội ngũ đứng sau</span> <span class="text-yellow">TÂM</span>
-                </h2>
+                <h2 class="team-title"><span id="team-t1">Đội ngũ đứng sau</span> <span class="text-yellow">TÂM</span></h2>
                 <p class="team-desc" id="team-desc">
-                    Bọn mình là nhóm sinh viên FPT chuyên ngành AI, tên còn gọi là DNA TEAM. Hành động theo đúng với tên nhóm, chúng mình luôn muốn gắn kết tất cả mọi người thành một khối đoàn kết không thể tách rời. Với khẩu hiệu "Một ánh lửa nhỏ, thắp triệu ngọn nến to", chúng mình khao khát có thể truyền cảm hứng cho mọi người, gửi gắm tình yêu thương đến các em nhỏ có hoàn cảnh khó khăn nói riêng và tất cả mọi người nói chung
+                    Bọn mình là nhóm sinh viên FPT chuyên ngành AI, tên còn gọi là DNA TEAM. Hành động theo đúng với tên nhóm, chúng mình luôn muốn gắn kết tất cả mọi người thành một khối đoàn kết không thể tách rời. Với khẩu hiệu "Một ánh lửa nhỏ, thắp triệu ngọn nến to", chúng mình khao khát có thể truyền cảm hứng cho mọi người, gửi gắm tình yêu thương đến các em nhỏ có hoàn cảnh khó khăn nói riêng và tất cả mọi người nói chung qua các bài học về AI, đúng với châm ngôn "Bình dân AI HỌC" của thầy Hoàng Nam Tiến.
                 </p>
-                <p class="team-conclusion">
-                    <strong id="team-c1">Và chúng mình là</strong> <strong class="text-yellow" id="team-c2">DNA TEAM - LIÊN KẾT TRÊN TỪNG TẾ BÀO</strong>
-                </p>
+                <p class="team-conclusion"><strong id="team-c1">Và chúng mình là</strong> <strong class="text-yellow" id="team-c2">DNA TEAM - LIÊN KẾT TRÊN TỪNG TẾ BÀO</strong></p>
             </div>
         </div>
     </div>
@@ -288,33 +284,26 @@
         </div>
         <div class="footer-center">
             <h3 class="footer-heading">Community</h3>
-            <a href="#" class="footer-social">
-                <svg viewBox="0 0 512 512" fill="currentColor">
-                    <path d="M504 256C504 119 393 8 256 8S8 119 8 256c0 123.78 90.69 226.38 209.25 245V327.69h-63V256h63v-54.64c0-62.15 37-96.48 93.67-96.48 27.14 0 55.52 4.84 55.52 4.84v61h-31.28c-30.8 0-40.41 19.12-40.41 38.73V256h68.78l-11 71.69h-57.78V501C413.31 482.38 504 379.78 504 256z"/>
-                </svg>
+            <a href="https://www.facebook.com/profile.php?id=61590603537553" target="_blank" class="footer-social">
+                <svg viewBox="0 0 512 512" fill="currentColor"><path d="M504 256C504 119 393 8 256 8S8 119 8 256c0 123.78 90.69 226.38 209.25 245V327.69h-63V256h63v-54.64c0-62.15 37-96.48 93.67-96.48 27.14 0 55.52 4.84 55.52 4.84v61h-31.28c-30.8 0-40.41 19.12-40.41 38.73V256h68.78l-11 71.69h-57.78V501C413.31 482.38 504 379.78 504 256z"/></svg>
             </a>
         </div>
         <div class="footer-right">
             <h3 class="footer-heading">Contact</h3>
-            <p>Hotline: 037 267 8829<br>Zalo: 037 267 8829<br>Email: tamtytnhv@gmail.com</p>
+            <p>Hotline: 0972554569<br>Zalo: 0972554569<br>Email: haianh12206@gmail.com</p>
         </div>
     </footer>
 
     <div class="chat-popup" id="chat-popup">
         <div class="chat-header">
-            <div class="chat-dots">
-                <div class="chat-dot yellow"></div>
-                <div class="chat-dot pink"></div>
-            </div>
+            <div class="chat-dots"><div class="chat-dot yellow"></div><div class="chat-dot pink"></div></div>
             <button class="chat-close" id="close-chat">&times;</button>
         </div>
         <div class="chat-body"></div>
         <div class="chat-footer">
             <input type="text" id="chat-input" placeholder="Gửi tin nhắn của bạn ở đây...">
             <button class="chat-send" id="send-btn" disabled>
-                <svg viewBox="0 0 512 512" width="24" height="24" fill="currentColor">
-                    <path d="M498.1 5.6c10.1 7 15.4 19.1 13.5 31.2l-64 416c-1.5 9.7-7.4 18.2-16 23s-18.9 5.4-28 1.6L284 427.7l-68.5 74.1c-8.9 9.7-22.9 12.9-35.2 8.1S160 493.2 160 480V396.4c0-4 1.5-7.8 4.2-10.7L331.8 202.8c5.8-6.3 5.6-16-.4-22s-15.7-6.4-22-.7L106 360.8 17.7 316.6C7.1 311.3 .3 300.7 0 288.9s5.9-22.8 16.1-28.7l448-256c10.7-6.1 23.9-5.5 34 1.4z"/>
-                </svg>
+                <svg viewBox="0 0 512 512" width="24" height="24" fill="currentColor"><path d="M498.1 5.6c10.1 7 15.4 19.1 13.5 31.2l-64 416c-1.5 9.7-7.4 18.2-16 23s-18.9 5.4-28 1.6L284 427.7l-68.5 74.1c-8.9 9.7-22.9 12.9-35.2 8.1S160 493.2 160 480V396.4c0-4 1.5-7.8 4.2-10.7L331.8 202.8c5.8-6.3 5.6-16-.4-22s-15.7-6.4-22-.7L106 360.8 17.7 316.6C7.1 311.3 .3 300.7 0 288.9s5.9-22.8 16.1-28.7l448-256c10.7-6.1 23.9-5.5 34 1.4z"/></svg>
             </button>
         </div>
     </div>
@@ -325,7 +314,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, push, onValue, onChildAdded } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, push, onValue, onChildAdded } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     
         const firebaseConfig = {
             apiKey: "AIzaSyBPyU75RUGU5UbkzecWSOjRWsIZnqqOfnM",
@@ -339,7 +328,6 @@
     
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-    
         window.db = db; window.ref = ref; window.push = push; window.onValue = onValue; window.onChildAdded = onChildAdded;
     </script>
 
@@ -352,10 +340,10 @@
                 'infoDesc': 'Mỗi đóng góp, lượt mua hàng của bạn, là gửi ngàn tình yêu thương đến các em nhỏ có hoàn cảnh đặc biệt.',
                 'projT1': 'Giới thiệu', 'projT2': 'DỰ ÁN', 'projSub1': 'Dự án', 'projSub2': 'là gì ?',
                 'projI1': 'Đây là một dự án giáo dục phi lợi nhuận của nhóm sinh viên FPT chuyên ngành Trí tuệ nhân tạo (AI) bộ môn SSG104',
-                'projI2': 'Trang web tích hợp bán hàng gây quỹ, nhận đồ quyên góp từ các nhà hảo tâm',
-                'projI3': 'Dự án gây quỹ ủng hộ cho các em nhỏ có hoàn cảnh đặc biệt tại Mái Ấm Thiên Ân',
+                'projI2': 'Trang web tích hợp bán hàng gây quỹ, nhận đồ quyên góp từ các nhà hảo tâm và đăng các bài giảng liên quan đến kiến thức về việc sử dụng Trí tuệ nhân tạo (AI)',
+                'projI3': 'Các bài giảng trên web phù hợp cho mọi đối tượng, dễ tiếp thu và áp dụng vào cuộc sống hằng ngày',
                 'teamBadge': 'MEET THE TEAM', 'teamT1': 'Đội ngũ đứng sau',
-                'teamDesc': 'Bọn mình là nhóm sinh viên FPT chuyên ngành AI, tên còn gọi là DNA TEAM. Hành động theo đúng với tên nhóm, chúng mình luôn muốn gắn kết tất cả mọi người thành một khối đoàn kết không thể tách rời. Với khẩu hiệu "Một ánh lửa nhỏ, thắp triệu ngọn nến to", chúng mình khao khát có thể truyền cảm hứng cho mọi người, gửi gắm tình yêu thương đến các em nhỏ có hoàn cảnh khó khăn nói riêng và tất cả mọi người nói chung',
+                'teamDesc': 'Bọn mình là nhóm sinh viên FPT chuyên ngành AI, tên còn gọi là DNA TEAM. Hành động theo đúng với tên nhóm, chúng mình luôn muốn gắn kết tất cả mọi người thành một khối đoàn kết không thể tách rời. Với khẩu hiệu "Một ánh lửa nhỏ, thắp triệu ngọn nến to", chúng mình khao khát có thể truyền cảm hứng cho mọi người, gửi gắm tình yêu thương đến các em nhỏ có hoàn cảnh khó khăn nói riêng và tất cả mọi người nói chung qua các bài học về AI, đúng với châm ngôn "Bình dân AI HỌC" của thầy Hoàng Nam Tiến.',
                 'chatPlaceholder': 'Gửi tin nhắn của bạn ở đây...'
             },
             'en': { 
@@ -416,7 +404,6 @@
             }, 400);
         }
 
-        // --- INTERSECTION OBSERVER CUỘN TRANG ---
         document.addEventListener('DOMContentLoaded', function() {
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -427,7 +414,6 @@
 
             document.querySelectorAll('.reveal-item').forEach((el) => observer.observe(el));
             
-            // --- XỬ LÝ CHAT POPUP & TIN CHÀO MỪNG ĐA NGÔN NGỮ ---
             const chatToggleBtn = document.getElementById('chat-toggle');
             const chatPopup = document.getElementById('chat-popup');
             const closeChatBtn = document.getElementById('close-chat');
@@ -437,7 +423,6 @@
                 e.preventDefault(); 
                 chatPopup.classList.toggle('active'); 
                 
-                // Kích hoạt tin nhắn chào mừng cục bộ (Local) lần đầu tiên bật chat
                 if (chatPopup.classList.contains('active') && !hasWelcomed) {
                     hasWelcomed = true;
                     setTimeout(() => {
@@ -456,13 +441,11 @@
 
             closeChatBtn.addEventListener('click', () => chatPopup.classList.remove('active'));
 
-            // --- LOGIC XỬ LÝ CHAT PHÒNG RIÊNG REALTIME VỚI FIREBASE ---
             let isBotActive = true; 
             const chatBody = document.querySelector('.chat-body');
             const chatInput = document.getElementById('chat-input');
             const sendBtn = document.getElementById('send-btn');
 
-            // Cấp mã ID riêng biệt lưu trên trình duyệt của máy khách
             let myChatId = localStorage.getItem('tam_chat_id');
             if (!myChatId) {
                 myChatId = 'guest_' + Math.random().toString(36).substr(2, 9);
@@ -473,12 +456,10 @@
 
             setTimeout(() => {
                 if (window.db) {
-                    // Đọc trạng thái công tắc Bot
                     window.onValue(window.ref(window.db, 'settings/bot_active'), (snapshot) => {
                         if (snapshot.exists()) isBotActive = snapshot.val();
                     });
 
-                    // Lắng nghe dữ liệu luồng tin của riêng phòng chat này
                     window.onChildAdded(window.ref(window.db, `messages/${myChatId}/`), (snapshot) => {
                         const msg = snapshot.val();
                         const bubble = document.createElement('div');
@@ -505,30 +486,25 @@
 
                 if (window.push && window.ref && window.db) {
                     window.push(window.ref(window.db, `messages/${myChatId}/`), {
-                        sender: "Khách",
-                        message: text,
-                        timestamp: Date.now()
+                        sender: "Khách", message: text, timestamp: Date.now()
                     });
                 }
                 
-                chatInput.value = "";
-                sendBtn.disabled = true;
+                chatInput.value = ""; sendBtn.disabled = true;
 
-                // Nếu bot bật -> Tự động phản hồi thông tin MXH sau 0.6s
                 if (isBotActive) {
                     setTimeout(() => {
+                        // ĐÃ CHÈN LINK FANPAGE VÀO TIN NHẮN TỰ ĐỘNG CỦA CHATBOT
                         const botMsg = `Mọi thắc mắc xin liên hệ qua Fanpage và ZALO:<br>
                             <div class="contact-links">
                                 <a href="https://zalo.me/0972554569" target="_blank" class="contact-icon" style="background:#0084ff; color:white;">Z</a>
-                                <a href="https://www.facebook.com/hai.anh.319492" target="_blank" class="contact-icon" style="background:#4267B2; color:white;">f</a>
+                                <a href="https://www.facebook.com/profile.php?id=61590603537553" target="_blank" class="contact-icon" style="background:#4267B2; color:white;">f</a>
                             </div>`;
                         
                         window.push(window.ref(window.db, `messages/${myChatId}/`), {
-                            sender: "Bot",
-                            message: botMsg,
-                            timestamp: Date.now()
+                            sender: "Bot", message: botMsg, timestamp: Date.now()
                         });
-                    }, 600);    
+                    }, 600);
                 }
             }
 

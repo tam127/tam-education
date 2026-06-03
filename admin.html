@@ -23,8 +23,8 @@
 
         /* Dashboard */
         #dashboard-content { display: none; height: 100vh; width: 100%; }
-        .sidebar { width: 250px; background: #2a5a54; color: white; padding: 20px; }
-        .sidebar h2 { margin-bottom: 30px; }
+        .sidebar { width: 250px; background: #2a5a54; color: white; padding: 20px; display: flex; flex-direction: column; }
+        .sidebar h2 { margin-bottom: 20px; text-align: center; }
         .tab-btn { display: block; width: 100%; padding: 15px; background: none; border: none; color: white; text-align: left; cursor: pointer; border-bottom: 1px solid #3e7a73; }
         .tab-btn.active { background: #f1b347; color: #2a5a54; font-weight: bold; }
         .main-content { flex: 1; padding: 30px; overflow-y: auto; background: #f4f4f4;}
@@ -77,11 +77,17 @@
 <div id="dashboard-content">
     <div class="sidebar">
         <h2>Admin Panel</h2>
+        
+        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; border: 1px dashed #3e7a73;">
+            <div style="font-size: 0.85rem; color: #f1b347; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;">👁️ Lượt truy cập web</div>
+            <div id="view-count" style="font-size: 2.2rem; font-weight: bold; margin-top: 5px; color: #fff;">0</div>
+        </div>
+
         <button class="tab-btn active" onclick="openTab(event, 'orders')">🛒 Đơn hàng MỚI</button>
         <button class="tab-btn" onclick="openTab(event, 'chat')">💬 Quản lý Chat</button>
         <button class="tab-btn" onclick="openTab(event, 'inventory')">📦 Kho hàng</button>
         <button class="tab-btn" onclick="openTab(event, 'donations')">🎁 Quyên góp</button>
-        <button class="tab-btn" onclick="logout()" style="margin-top: 50px; color: #f1b347;">🚪 Đăng xuất</button>
+        <button class="tab-btn" onclick="logout()" style="margin-top: auto; color: #f1b347; border-bottom: none; padding-top: 30px;">🚪 Đăng xuất</button>
     </div>
 
     <div class="main-content">
@@ -166,7 +172,6 @@
 </div>
 
 <script>
-    // LOGIC ĐĂNG NHẬP & ẨN HIỆN MẬT KHẨU
     const loginOverlay = document.getElementById('login-overlay');
     const dashboardContent = document.getElementById('dashboard-content');
     const usernameInput = document.getElementById('username');
@@ -329,7 +334,7 @@
         }
     }
 
-    // --- 2. CHỨC NĂNG KHO HÀNG (THÊM & SỬA) ---
+    // --- 2. CHỨC NĂNG KHO HÀNG ---
     const prodNameInput = document.getElementById('prod-name');
     const prodColorInput = document.getElementById('prod-color');
     const prodPriceInput = document.getElementById('prod-price');
@@ -339,27 +344,25 @@
     const formTitle = document.getElementById('inventory-form-title');
     const inventoryTableBody = document.getElementById('inventory-table-body');
 
-    // Biến lưu trữ trạng thái khi đang sửa
     let editingProductId = null;
     let editingProductImg = null;
-    let cachedProducts = {}; // Lưu tạm danh sách sản phẩm để gọi ra khi bấm sửa
+    let cachedProducts = {};
 
     window.deleteProduct = function(prodKey) {
         if(confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi kho hàng?")) { window.remove(window.ref(window.db, 'products/' + prodKey)); }
     };
 
-    // Hàm gọi khi bấm nút "Sửa"
     window.triggerEditProduct = function(key) {
         const prod = cachedProducts[key];
         if(!prod) return;
 
         editingProductId = key;
-        editingProductImg = prod.image; // Lưu lại ảnh cũ
+        editingProductImg = prod.image; 
 
         prodNameInput.value = prod.name || '';
         prodColorInput.value = prod.color || '';
         prodPriceInput.value = prod.price || '';
-        prodImgInput.value = ''; // Reset input file vì không lấy lại file path được
+        prodImgInput.value = ''; 
 
         formTitle.innerHTML = "✏️ Đang chỉnh sửa sản phẩm";
         formTitle.style.color = "#27ae60";
@@ -367,11 +370,9 @@
         addProdBtn.style.background = "#27ae60";
         cancelEditBtn.style.display = "inline-block";
 
-        // Cuộn lên form
         document.getElementById('inventory').scrollIntoView({ behavior: 'smooth' });
     };
 
-    // Hàm Hủy sửa
     window.cancelEdit = function() {
         editingProductId = null;
         editingProductImg = null;
@@ -384,7 +385,6 @@
         cancelEditBtn.style.display = "none";
     };
 
-    // Nút Lưu/Cập nhật
     addProdBtn.addEventListener('click', () => {
         const name = prodNameInput.value.trim();
         const color = prodColorInput.value.trim();
@@ -392,40 +392,27 @@
         const file = prodImgInput.files[0];
         
         if(!name || !price) { alert("Vui lòng điền tối thiểu tên và giá sản phẩm!"); return; }
-        // Ràng buộc ảnh: Nếu tạo mới phải có ảnh, nếu đang sửa thì có thể bỏ qua (dùng ảnh cũ)
         if(!file && !editingProductId) { alert("Vui lòng chọn ảnh sản phẩm!"); return; }
 
         if (file) {
-            // Có upload ảnh mới
             const reader = new FileReader();
             reader.onload = function(e) {
                 saveProductData(name, color, price, e.target.result);
             };
             reader.readAsDataURL(file);
         } else {
-            // Không up ảnh mới -> Lấy ảnh cũ đang lưu
             saveProductData(name, color, price, editingProductImg);
         }
     });
 
     function saveProductData(name, color, price, imgBase64) {
         if (editingProductId) {
-            // ĐANG Ở CHẾ ĐỘ SỬA
             set(ref(db, 'products/' + editingProductId), {
-                name: name,
-                color: color,
-                price: price,
-                image: imgBase64,
-                timestamp: Date.now() // Cập nhật thời gian mới để nhảy lên đầu
+                name: name, color: color, price: price, image: imgBase64, timestamp: Date.now() 
             }).then(() => { window.cancelEdit(); });
         } else {
-            // ĐANG Ở CHẾ ĐỘ THÊM MỚI
             push(ref(db, 'products/'), {
-                name: name,
-                color: color,
-                price: price,
-                image: imgBase64,
-                timestamp: Date.now()
+                name: name, color: color, price: price, image: imgBase64, timestamp: Date.now()
             }).then(() => { window.cancelEdit(); });
         }
     }
@@ -433,7 +420,7 @@
     onValue(ref(db, 'products/'), (snapshot) => {
         const data = snapshot.val(); 
         inventoryTableBody.innerHTML = ''; 
-        cachedProducts = data || {}; // Lưu tạm vào biến toàn cục để dùng khi bấm Edit
+        cachedProducts = data || {}; 
 
         if (data) {
             const products = Object.keys(data).map(key => ({ key, ...data[key] })).reverse();
@@ -456,7 +443,6 @@
 
     // --- 3. CHỨC NĂNG QUẢN LÝ QUYÊN GÓP ---
     const donationsTableBody = document.getElementById('donations-table-body');
-    
     window.deleteDonation = function(donationKey) {
         if(confirm("Bạn có chắc chắn muốn xóa dữ liệu bill này không?")) { window.remove(window.ref(window.db, 'donations/' + donationKey)); }
     };
@@ -485,6 +471,17 @@
             });
         } else { donationsTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #666;">Chưa có lượt gửi bill quyên góp nào.</td></tr>'; }
     });
+
+    // --- 4. THỐNG KÊ LƯỢT TRUY CẬP (MỚI) ---
+    const viewCountEl = document.getElementById('view-count');
+    onValue(ref(db, 'stats/views'), (snapshot) => {
+        if (snapshot.exists()) {
+            viewCountEl.innerText = snapshot.val();
+        } else {
+            viewCountEl.innerText = "0";
+        }
+    });
+
 </script>
 
 </body>

@@ -15,7 +15,7 @@
             scroll-behavior: smooth;
         }
 
-        /* --- HEADER --- */
+        /* --- HEADER: HIỆU ỨNG KÍNH MỜ --- */
         .header {
             position: fixed; top: 0; left: 0; width: 100%; padding: 15px 40px;
             background-color: rgba(42, 90, 84, 0.85); 
@@ -50,10 +50,7 @@
 
         .product-info { display: flex; flex-direction: column; flex-grow: 1; align-items: center; }
         .product-name { font-size: 1.3rem; font-weight: 800; color: #222; margin-bottom: 5px; font-family: 'Georgia', serif; }
-        
-        /* CLASS MỚI: HIỂN THỊ MÀU SẮC */
         .product-color { font-size: 0.95rem; color: #666; margin-bottom: 12px; font-style: italic; flex-grow: 1; }
-        
         .product-price { font-size: 1.2rem; color: #1c453c; font-weight: 700; margin-bottom: 25px; background: rgba(241, 179, 71, 0.2); padding: 5px 15px; border-radius: 20px; }
         
         .btn-buy-now { width: 90%; padding: 14px; background: linear-gradient(135deg, #2a5a54, #1c453c); color: #fff; border: none; border-radius: 25px; font-weight: bold; font-size: 1.05rem; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(42, 90, 84, 0.3); }
@@ -86,7 +83,7 @@
         <div class="brand-name">TÂM - SHOP</div>
         <div class="header-actions">
             <a href="index.html" class="top-btn">🏠 Trang Chủ</a>
-            <a href="#" class="top-btn">
+            <a href="https://www.facebook.com/profile.php?id=61590603537553" target="_blank" rel="noopener noreferrer" class="top-btn">
                 Fanpage 
                 <svg viewBox="0 0 320 512" width="14" height="14" fill="currentColor">
                     <path d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z"/>
@@ -117,7 +114,7 @@
         </div>
         <div class="footer-center" style="text-align: center;">
             <h3 class="footer-heading">Kết nối</h3>
-            <a href="#" class="footer-social">
+            <a href="https://www.facebook.com/profile.php?id=61590603537553" target="_blank" rel="noopener noreferrer" class="footer-social">
                 <svg viewBox="0 0 512 512" fill="currentColor"><path d="M504 256C504 119 393 8 256 8S8 119 8 256c0 123.78 90.69 226.38 209.25 245V327.69h-63V256h63v-54.64c0-62.15 37-96.48 93.67-96.48 27.14 0 55.52 4.84 55.52 4.84v61h-31.28c-30.8 0-40.41 19.12-40.41 38.73V256h68.78l-11 71.69h-57.78V501C413.31 482.38 504 379.78 504 256z"/></svg>
             </a>
         </div>
@@ -145,12 +142,11 @@
         const db = getDatabase(app);
         const productGrid = document.getElementById('product-grid');
 
-        // ĐÃ CẬP NHẬT: Thêm biến color vào hàm mua hàng
         window.buyProduct = function(name, price, img, color) {
             sessionStorage.setItem('checkout_name', name);
             sessionStorage.setItem('checkout_price', price);
             sessionStorage.setItem('checkout_img', img);
-            sessionStorage.setItem('checkout_color', color); // Nhét màu sắc vào túi
+            sessionStorage.setItem('checkout_color', color); 
             window.location.href = 'thanhtoan.html';
         };
 
@@ -164,13 +160,11 @@
                     
                     products.forEach((prod, index) => {
                         const safeName = prod.name.replace(/'/g, "\\'");
-                        // Xử lý chống lỗi cho biến màu sắc (phòng khi bạn chưa điền màu)
                         const rawColor = prod.color ? prod.color : 'Mặc định';
                         const safeColor = rawColor.replace(/'/g, "\\'");
                         
                         const delay = index * 0.1;
                         
-                        // ĐÃ CẬP NHẬT: Hiển thị thêm thẻ <div class="product-color">
                         productGrid.innerHTML += `
                             <div class="product-card" style="animation: slideUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) ${delay}s both;">
                                 <img src="${prod.image}" alt="${prod.name}" class="product-img">

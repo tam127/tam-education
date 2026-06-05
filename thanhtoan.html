@@ -75,7 +75,7 @@
             <h2>Đơn hàng của bạn</h2>
             <img id="display-img" src="" class="prod-img" alt="Ảnh sản phẩm">
             <div id="display-name" class="prod-name">Đang tải...</div>
-            <div id="display-color" class="prod-color">Màu: ...</div>
+            <div id="display-color" class="prod-color">Bạn có thể chọn màu sắc trong phần ghi chú</div>
             <div id="display-price" class="prod-price">...</div>
 
             <div class="quantity-control">
@@ -200,7 +200,8 @@
             const imgEl = document.getElementById('display-img');
             
             if (nameEl) nameEl.innerText = prodName;
-            if (colorEl) colorEl.innerText = "Màu sắc: " + (prodColor || "Mặc định");
+            // Đã đổi dòng hiển thị ở đây
+            if (colorEl) colorEl.innerText = "Màu sắc: Bạn có thể chọn màu sắc trong phần ghi chú";
             if (priceEl) priceEl.innerText = rawPriceString;
             if (imgEl) imgEl.src = prodImg;
             
@@ -288,7 +289,7 @@
                     customerAddress: address,
                     customerNote: note,
                     productName: prodName,
-                    productColor: prodColor || "Mặc định",
+                    productColor: "Khách chọn ở ghi chú",
                     productQuantity: currentQuantity,
                     productPrice: rawPriceString, 
                     totalPrice: finalTotalPrice,  

@@ -70,6 +70,7 @@
 <body>
 
     <div class="checkout-container">
+        <!-- Thông tin sản phẩm -->
         <div class="product-summary">
             <h2>Đơn hàng của bạn</h2>
             <img id="display-img" src="" class="prod-img" alt="Ảnh sản phẩm">
@@ -89,6 +90,7 @@
             </div>
         </div>
 
+        <!-- Form đặt hàng -->
         <div class="checkout-form">
             <h2>Thông tin giao hàng</h2>
             
@@ -119,7 +121,8 @@
 
             <div id="qr-section">
                 <p style="color: #666; margin-bottom: 10px; font-size: 0.9rem;">Vui lòng quét mã dưới đây và giữ lại ảnh chụp màn hình bill thanh toán nếu cần.</p>
-                <img src="qr-code-trung.png" alt="Mã QR Tâm">
+                <!-- Lưu ý: Thay tên file QR của bạn vào src dưới đây -->
+                <img src="qr-code.png" alt="Mã QR Tâm">
                 <p style="font-weight: bold; color: #2a5a54;">Nội dung CK: TAM + Số điện thoại</p>
             </div>
 
@@ -130,6 +133,7 @@
         </div>
     </div>
 
+    <!-- Popup thành công -->
     <div class="modal-overlay" id="success-modal">
         <div class="modal-content">
             <h3>🎉 Đặt hàng thành công!</h3>
@@ -155,19 +159,19 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Đọc thông tin sản phẩm
+        // Đọc thông tin sản phẩm từ sessionStorage
         const prodName = sessionStorage.getItem('checkout_name');
         const prodColor = sessionStorage.getItem('checkout_color');
         const rawPriceString = sessionStorage.getItem('checkout_price');
         const prodImg = sessionStorage.getItem('checkout_img');
 
-        // Hàm trích xuất số từ chuỗi giá (VD: "50.000 VNĐ" -> 50000)
+        // Hàm trích xuất số từ chuỗi giá
         function extractNumberFromPrice(priceStr) {
             if (!priceStr) return 0;
             return parseInt(priceStr.replace(/[^0-9]/g, '')) || 0;
         }
 
-        // Hàm định dạng số thành tiền VNĐ (VD: 50000 -> "50.000 VNĐ")
+        // Hàm định dạng số thành tiền VNĐ
         function formatPrice(number) {
             return number.toLocaleString('vi-VN') + " VNĐ";
         }
@@ -175,18 +179,7 @@
         const basePriceNumber = extractNumberFromPrice(rawPriceString);
         let currentQuantity = 1;
 
-        if (prodName) {
-            document.getElementById('display-name').innerText = prodName;
-            document.getElementById('display-color').innerText = "Màu sắc: " + (prodColor || "Mặc định");
-            document.getElementById('display-price').innerText = rawPriceString;
-            document.getElementById('display-img').src = prodImg;
-            updateTotalPrice();
-        } else {
-            alert("Lỗi: Không tìm thấy thông tin sản phẩm! Vui lòng chọn lại sản phẩm.");
-            window.location.href = "muahang.html";
-        }
-
-        // --- XỬ LÝ SỐ LƯỢNG VÀ TỔNG TIỀN ---
+        // Lấy các phần tử HTML TRƯỚC KHI gọi updateTotalPrice
         const inputQty = document.getElementById('input-qty');
         const btnMinus = document.getElementById('btn-minus');
         const btnPlus = document.getElementById('btn-plus');
@@ -194,33 +187,56 @@
 
         function updateTotalPrice() {
             const total = basePriceNumber * currentQuantity;
-            displayTotal.innerText = formatPrice(total);
+            if (displayTotal) {
+                displayTotal.innerText = formatPrice(total);
+            }
         }
 
-        btnMinus.addEventListener('click', () => {
-            if (currentQuantity > 1) {
-                currentQuantity--;
+        // Hiển thị lên màn hình
+        if (prodName) {
+            const nameEl = document.getElementById('display-name');
+            const colorEl = document.getElementById('display-color');
+            const priceEl = document.getElementById('display-price');
+            const imgEl = document.getElementById('display-img');
+            
+            if (nameEl) nameEl.innerText = prodName;
+            if (colorEl) colorEl.innerText = "Màu sắc: " + (prodColor || "Mặc định");
+            if (priceEl) priceEl.innerText = rawPriceString;
+            if (imgEl) imgEl.src = prodImg;
+            
+            updateTotalPrice(); 
+        } else {
+            alert("Lỗi: Không tìm thấy thông tin sản phẩm! Vui lòng chọn lại sản phẩm.");
+            window.location.href = "muahang.html";
+        }
+
+        // --- XỬ LÝ SỐ LƯỢNG VÀ TỔNG TIỀN ---
+        if (btnMinus && btnPlus && inputQty) {
+            btnMinus.addEventListener('click', () => {
+                if (currentQuantity > 1) {
+                    currentQuantity--;
+                    inputQty.value = currentQuantity;
+                    updateTotalPrice();
+                }
+            });
+
+            btnPlus.addEventListener('click', () => {
+                if (currentQuantity < 99) {
+                    currentQuantity++;
+                    inputQty.value = currentQuantity;
+                    updateTotalPrice();
+                }
+            });
+
+            inputQty.addEventListener('change', () => {
+                let val = parseInt(inputQty.value);
+                if (isNaN(val) || val < 1) val = 1;
+                if (val > 99) val = 99;
+                currentQuantity = val;
                 inputQty.value = currentQuantity;
                 updateTotalPrice();
-            }
-        });
-
-        btnPlus.addEventListener('click', () => {
-            if (currentQuantity < 99) {
-                currentQuantity++;
-                inputQty.value = currentQuantity;
-                updateTotalPrice();
-            }
-        });
-
-        inputQty.addEventListener('change', () => {
-            let val = parseInt(inputQty.value);
-            if (isNaN(val) || val < 1) val = 1;
-            if (val > 99) val = 99;
-            currentQuantity = val;
-            inputQty.value = currentQuantity;
-            updateTotalPrice();
-        });
+            });
+        }
 
         // Xử lý nút chọn phương thức thanh toán
         let paymentMethod = "COD"; 
@@ -228,53 +244,67 @@
         const btnQr = document.getElementById('btn-qr');
         const qrSection = document.getElementById('qr-section');
 
-        btnCod.addEventListener('click', () => {
-            btnCod.classList.add('active'); btnQr.classList.remove('active');
-            qrSection.style.display = 'none'; paymentMethod = "Thanh toán khi nhận hàng (COD)";
-        });
+        if(btnCod && btnQr) {
+            btnCod.addEventListener('click', () => {
+                btnCod.classList.add('active'); btnQr.classList.remove('active');
+                if(qrSection) qrSection.style.display = 'none'; 
+                paymentMethod = "Thanh toán khi nhận hàng (COD)";
+            });
 
-        btnQr.addEventListener('click', () => {
-            btnQr.classList.add('active'); btnCod.classList.remove('active');
-            qrSection.style.display = 'block'; paymentMethod = "Chuyển khoản (Quét QR)";
-        });
+            btnQr.addEventListener('click', () => {
+                btnQr.classList.add('active'); btnCod.classList.remove('active');
+                if(qrSection) qrSection.style.display = 'block'; 
+                paymentMethod = "Chuyển khoản (Quét QR)";
+            });
+        }
 
         // Xử lý khi ấn Đặt hàng
-        document.getElementById('btn-confirm').addEventListener('click', () => {
-            const name = document.getElementById('cus-name').value.trim();
-            const phone = document.getElementById('cus-phone').value.trim();
-            const address = document.getElementById('cus-address').value.trim();
-            const note = document.getElementById('cus-note').value.trim();
+        const btnConfirm = document.getElementById('btn-confirm');
+        if(btnConfirm) {
+            btnConfirm.addEventListener('click', () => {
+                const nameEl = document.getElementById('cus-name');
+                const phoneEl = document.getElementById('cus-phone');
+                const addressEl = document.getElementById('cus-address');
+                const noteEl = document.getElementById('cus-note');
 
-            if(!name || !phone || !address) {
-                alert("Vui lòng điền đầy đủ thông tin giao hàng!"); return;
-            }
+                const name = nameEl ? nameEl.value.trim() : "";
+                const phone = phoneEl ? phoneEl.value.trim() : "";
+                const address = addressEl ? addressEl.value.trim() : "";
+                const note = noteEl ? noteEl.value.trim() : "";
 
-            document.getElementById('btn-confirm').innerText = "ĐANG XỬ LÝ...";
-            document.getElementById('btn-confirm').style.pointerEvents = "none";
+                if(!name || !phone || !address) {
+                    alert("Vui lòng điền đầy đủ thông tin giao hàng!"); return;
+                }
 
-            const finalTotalPrice = formatPrice(basePriceNumber * currentQuantity);
+                btnConfirm.innerText = "ĐANG XỬ LÝ...";
+                btnConfirm.style.pointerEvents = "none";
 
-            // Bắn đơn hàng lên Firebase (Gộp số lượng và ghi chú)
-            push(ref(db, 'orders/'), {
-                customerName: name,
-                customerPhone: phone,
-                customerAddress: address,
-                customerNote: note,
-                productName: prodName,
-                productColor: prodColor || "Mặc định",
-                productQuantity: currentQuantity,
-                productPrice: rawPriceString, // Đơn giá
-                totalPrice: finalTotalPrice,  // Tổng tiền
-                paymentMethod: paymentMethod,
-                timestamp: Date.now()
-            }).then(() => {
-                document.getElementById('success-modal').classList.add('active');
-            }).catch(err => {
-                alert("Đã xảy ra lỗi kết nối, vui lòng thử lại sau!");
-                document.getElementById('btn-confirm').innerText = "XÁC NHẬN ĐẶT HÀNG";
-                document.getElementById('btn-confirm').style.pointerEvents = "auto";
+                const finalTotalPrice = formatPrice(basePriceNumber * currentQuantity);
+
+                // Bắn đơn hàng lên Firebase
+                push(ref(db, 'orders/'), {
+                    customerName: name,
+                    customerPhone: phone,
+                    customerAddress: address,
+                    customerNote: note,
+                    productName: prodName,
+                    productColor: prodColor || "Mặc định",
+                    productQuantity: currentQuantity,
+                    productPrice: rawPriceString, 
+                    totalPrice: finalTotalPrice,  
+                    paymentMethod: paymentMethod,
+                    timestamp: Date.now()
+                }).then(() => {
+                    const successModal = document.getElementById('success-modal');
+                    if(successModal) successModal.classList.add('active');
+                    else alert("Đặt hàng thành công!");
+                }).catch(err => {
+                    alert("Đã xảy ra lỗi kết nối, vui lòng thử lại sau!");
+                    btnConfirm.innerText = "XÁC NHẬN ĐẶT HÀNG";
+                    btnConfirm.style.pointerEvents = "auto";
+                });
             });
-        });
+        }
     </script>
 </body>
 </html>

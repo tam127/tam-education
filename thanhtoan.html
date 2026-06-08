@@ -10,23 +10,21 @@
         
         .checkout-container { background: #fff; width: 100%; max-width: 900px; border-radius: 20px; display: flex; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.3); flex-direction: row; }
         
-        /* Cột trái */
         .product-summary { background: #f8f9fa; width: 42%; padding: 35px; display: flex; flex-direction: column; align-items: center; border-right: 1px solid #ddd; }
         .product-summary h2 { color: #2a5a54; margin-bottom: 20px; font-size: 1.5rem; text-align: center; }
         
-        /* Khung chứa list sản phẩm thanh toán */
         .checkout-list-wrapper { width: 100%; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; max-height: 380px; padding-right: 5px; margin-bottom: 15px; }
         .checkout-item-row { display: flex; gap: 12px; align-items: center; background: #fff; padding: 10px; border-radius: 10px; border: 1px solid #eaeaea; }
         .checkout-item-img { width: 55px; height: 55px; object-fit: cover; border-radius: 6px; border: 1px solid #eee; }
         .checkout-item-detail { flex: 1; text-align: left; }
-        .checkout-item-title { font-weight: bold; font-size: 0.95rem; color: #222; line-height: 1.3; }
-        .checkout-item-sub { font-size: 0.85rem; color: #e67e22; font-weight: bold; margin-top: 2px; }
+        .checkout-item-title { font-weight: bold; font-size: 0.95rem; color: #222; line-height: 1.3; margin-bottom: 3px; }
+        .checkout-item-color { font-size: 0.8rem; color: #7f8c8d; font-style: italic; }
+        .checkout-item-sub { font-size: 0.85rem; color: #e67e22; font-weight: bold; margin-top: 3px; }
 
         .total-price-box { width: 100%; background: #fffcf5; border: 1px dashed #f1b347; padding: 15px; border-radius: 10px; text-align: center; }
         .total-price-label { font-size: 0.85rem; color: #666; font-weight: bold; letter-spacing: 0.5px; }
         .total-price-value { font-size: 1.8rem; font-weight: bold; color: #d35400; margin-top: 5px; }
 
-        /* Cột phải */
         .checkout-form { width: 58%; padding: 35px; display: flex; flex-direction: column; gap: 18px; }
         .checkout-form h2 { color: #2a5a54; font-size: 1.5rem; }
         
@@ -69,7 +67,6 @@
             <h2>Đơn hàng của bạn</h2>
             <div class="checkout-list-wrapper" id="checkout-list-wrapper">
                 </div>
-
             <div class="total-price-box">
                 <div class="total-price-label">TỔNG THANH TOÁN</div>
                 <div class="total-price-value" id="display-total">0 VNĐ</div>
@@ -78,7 +75,6 @@
 
         <div class="checkout-form">
             <h2>Thông tin giao hàng</h2>
-            
             <div class="form-group">
                 <label>Họ và Tên</label>
                 <input type="text" id="cus-name" class="form-control" placeholder="Nhập họ tên của bạn" required>
@@ -92,8 +88,8 @@
                 <textarea id="cus-address" class="form-control" rows="2" placeholder="Nhập địa chỉ chi tiết (Số nhà, đường...)" required></textarea>
             </div>
             <div class="form-group">
-                <label>Ghi chú (Tùy chọn)</label>
-                <textarea id="cus-note" class="form-control" rows="2" placeholder="Ghi chú thêm về đơn hàng..."></textarea>
+                <label>Ghi chú đơn hàng</label>
+                <textarea id="cus-note" class="form-control" rows="2" placeholder="Ví dụ: Giao giờ hành chính..."></textarea>
             </div>
 
             <div class="form-group">
@@ -142,11 +138,15 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Chế độ: Đọc dữ liệu từ Giỏ hàng hoặc từ Mua Ngay 1 món
         const cartDataStr = sessionStorage.getItem('checkout_cart');
         const prodName = sessionStorage.getItem('checkout_name');
+        const prodColor = sessionStorage.getItem('checkout_color');
         const rawPriceString = sessionStorage.getItem('checkout_price');
         const prodImg = sessionStorage.getItem('checkout_img');
+        
+        // Tự động điền lại Note nếu khách hàng đã viết trong giỏ hàng
+        const prevNote = sessionStorage.getItem('checkout_note');
+        if(prevNote) document.getElementById('cus-note').value = prevNote;
 
         const listWrapper = document.getElementById('checkout-list-wrapper');
         const displayTotal = document.getElementById('display-total');
@@ -160,9 +160,7 @@
             return parseInt(priceStr.replace(/[^0-9]/g, '')) || 0;
         }
 
-        // --- XỬ LÝ ĐỔ DỮ LIỆU ---
         if (cartDataStr) {
-            // Trường hợp 1: Thanh toán từ GIỎ HÀNG
             isFromCart = true;
             checkoutList = JSON.parse(cartDataStr);
             
@@ -175,6 +173,7 @@
                         <img src="${item.img}" class="checkout-item-img">
                         <div class="checkout-item-detail">
                             <div class="checkout-item-title">${item.name}</div>
+                            <div class="checkout-item-color">Màu: ${item.color}</div>
                             <div class="checkout-item-sub">SL: ${item.qty} x ${item.price}</div>
                         </div>
                     </div>
@@ -182,7 +181,6 @@
             });
             displayTotal.innerText = finalGrandTotal.toLocaleString('vi-VN') + " VNĐ";
         } else if (prodName) {
-            // Trường hợp 2: Bấm MUA NGAY 1 sản phẩm nhanh
             isFromCart = false;
             finalGrandTotal = extractNumber(rawPriceString);
             
@@ -191,6 +189,7 @@
                     <img src="${prodImg}" class="checkout-item-img">
                     <div class="checkout-item-detail">
                         <div class="checkout-item-title">${prodName}</div>
+                        <div class="checkout-item-color">Màu: ${prodColor}</div>
                         <div class="checkout-item-sub">SL: 1 x ${rawPriceString}</div>
                     </div>
                 </div>
@@ -201,7 +200,6 @@
             window.location.href = "muahang.html";
         }
 
-        // Xử lý nút chọn phương thức thanh toán
         let paymentMethod = "COD"; 
         const btnCod = document.getElementById('btn-cod');
         const btnQr = document.getElementById('btn-qr');
@@ -217,7 +215,6 @@
             if(qrSection) qrSection.style.display = 'block'; paymentMethod = "Chuyển khoản";
         });
 
-        // Xử lý gửi đơn lên Firebase
         document.getElementById('btn-confirm').addEventListener('click', () => {
             const name = document.getElementById('cus-name').value.trim();
             const phone = document.getElementById('cus-phone').value.trim();
@@ -233,8 +230,7 @@
             let totalQty = 0;
 
             if (isFromCart) {
-                // Gộp danh sách giỏ hàng thành chuỗi dạng text xuống hàng để hiển thị vừa khít bảng Admin cũ
-                orderProductName = checkoutList.map(item => `• ${item.name} (SL: ${item.qty})`).join('<br>');
+                orderProductName = checkoutList.map(item => `• ${item.name} | Màu: ${item.color} | SL: ${item.qty}`).join('<br>');
                 totalQty = checkoutList.reduce((sum, item) => sum + item.qty, 0);
             } else {
                 orderProductName = prodName;
@@ -247,14 +243,14 @@
                 customerAddress: address,
                 customerNote: note,
                 productName: orderProductName,
-                productColor: isFromCart ? "Nhiều sản phẩm" : "Chọn ở ghi chú",
+                productColor: isFromCart ? "Xem chi tiết ở tên SP" : prodColor,
                 productQuantity: totalQty,
-                productPrice: isFromCart ? "Xem tổng tiền" : rawPriceString,
+                productPrice: isFromCart ? "Theo Giỏ hàng" : rawPriceString,
                 totalPrice: finalGrandTotal.toLocaleString('vi-VN') + " VNĐ",
                 paymentMethod: paymentMethod,
                 timestamp: Date.now()
             }).then(() => {
-                if(isFromCart) localStorage.removeItem('tam_shopping_cart'); // Xóa giỏ hàng khi mua thành công
+                if(isFromCart) localStorage.removeItem('tam_shopping_cart');
                 document.getElementById('success-modal').classList.add('active');
             }).catch(err => {
                 alert("Lỗi kết nối mạng!");
@@ -265,6 +261,7 @@
 
         document.getElementById('btn-success-close').addEventListener('click', () => {
             sessionStorage.removeItem('checkout_cart');
+            sessionStorage.removeItem('checkout_note');
             window.location.href = 'muahang.html';
         });
     </script>

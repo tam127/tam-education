@@ -224,10 +224,10 @@
     const db = getDatabase(app);
     window.db = db; window.ref = ref; window.remove = remove; window.onValue = onValue;
 
-    // --- 0. QUẢN LÝ ĐƠN HÀNG ---
+    // --- 0. QUẢN LÝ ĐƠN HÀNG (CẬP NHẬT TÍNH NĂNG HỦY) ---
     const ordersTableBody = document.getElementById('orders-table-body');
     window.deleteOrder = function(orderKey) {
-        if(confirm("Xác nhận đã xử lý xong và muốn xóa đơn hàng này?")) {
+        if(confirm("Xác nhận đã xử lý xong và muốn xóa đơn hàng/bản ghi này?")) {
             window.remove(window.ref(window.db, 'orders/' + orderKey));
         }
     };
@@ -242,26 +242,33 @@
                     '<span style="background:#e8f5e9; color:#2e7d32; padding:5px 10px; border-radius:15px; font-size:0.85rem; font-weight:bold;">COD</span>' : 
                     '<span style="background:#fff3e0; color:#ef6c00; padding:5px 10px; border-radius:15px; font-size:0.85rem; font-weight:bold;">Chuyển khoản</span>';
                 
-                // Hiển thị ghi chú nếu có
+                const isCancelled = order.status === 'cancelled';
+                const statusBadge = isCancelled ? `<div style="display:inline-block; background:#e74c3c; color:white; padding:4px 8px; border-radius:12px; font-size:0.8rem; font-weight:bold; margin-bottom:5px;">🚫 ĐÃ HỦY TỪ KHÁCH</div><br>` : '';
+                const cancelReasonHtml = isCancelled && order.cancelReason ? `<div style="margin-top: 5px; padding: 5px; background: #ffebee; border-left: 3px solid #e74c3c; font-size: 0.85rem; color: #c0392b;"><i>🚫 Lý do hủy: ${order.cancelReason}</i></div>` : '';
                 const noteHtml = order.customerNote ? `<div style="margin-top: 5px; padding: 5px; background: #fffae6; border-left: 3px solid #f1b347; font-size: 0.85rem; color: #555;"><i>📝 Ghi chú: ${order.customerNote}</i></div>` : '';
 
-                // Hiển thị số lượng, đơn giá và tổng
                 const qty = order.productQuantity || 1;
                 const pricePerItem = order.productPrice || "?";
                 const total = order.totalPrice || "?";
 
+                const actionBtn = isCancelled 
+                    ? `<button onclick="deleteOrder('${order.key}')" class="btn-danger">Xóa bản ghi</button>`
+                    : `<button onclick="deleteOrder('${order.key}')" class="btn-primary" style="background:#2ecc71;">Đã xử lý</button>`;
+
                 ordersTableBody.innerHTML += `
-                    <tr>
+                    <tr style="${isCancelled ? 'opacity: 0.85; background: #fdf2f2;' : ''}">
                         <td style="color: #666; font-size: 0.85rem;">${timeString}</td>
                         <td>
+                            ${statusBadge}
                             <strong>${order.customerName}</strong><br>
                             📞 <a href="tel:${order.customerPhone}" style="color:#2a5a54; text-decoration:none;">${order.customerPhone}</a><br>
                             <span style="font-size: 0.85rem; color: #555;">📍 ${order.customerAddress}</span>
                             ${noteHtml}
+                            ${cancelReasonHtml}
                         </td>
                         <td>
                             <strong style="color: #2a5a54; font-size: 1.05rem;">${order.productName}</strong>
-                            <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">Màu: ${order.productColor || 'Không có'}</div>
+                            <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">Phân loại: ${order.productColor || 'Không có'}</div>
                             <div style="font-size: 0.9rem;">
                                 SL: <strong>${qty}</strong> x <span style="color:#888;">${pricePerItem}</span>
                             </div>
@@ -270,9 +277,7 @@
                             </div>
                         </td>
                         <td style="text-align: center;">${paymentBadge}</td>
-                        <td style="text-align: center;">
-                            <button onclick="deleteOrder('${order.key}')" class="btn-primary" style="background:#2ecc71;">Đã xử lý</button>
-                        </td>
+                        <td style="text-align: center;">${actionBtn}</td>
                     </tr>
                 `;
             });

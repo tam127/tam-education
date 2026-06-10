@@ -208,7 +208,8 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, onValue, push, set, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    // Thêm hàm update từ firebase để đổi trạng thái đơn
+    import { getDatabase, ref, onValue, push, set, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBPyU75RUGU5UbkzecWSOjRWsIZnqqOfnM",
@@ -222,15 +223,27 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    window.db = db; window.ref = ref; window.remove = remove; window.onValue = onValue;
+    window.db = db; window.ref = ref; window.remove = remove; window.onValue = onValue; window.update = update;
 
-    // --- 0. QUẢN LÝ ĐƠN HÀNG (CẬP NHẬT TÍNH NĂNG HỦY) ---
+    // --- 0. QUẢN LÝ ĐƠN HÀNG ---
     const ordersTableBody = document.getElementById('orders-table-body');
+    
+    // Nút Xóa hẳn đơn
     window.deleteOrder = function(orderKey) {
-        if(confirm("Xác nhận đã xử lý xong và muốn xóa đơn hàng/bản ghi này?")) {
+        if(confirm("Xác nhận muốn xóa vĩnh viễn đơn hàng/bản ghi này khỏi hệ thống?")) {
             window.remove(window.ref(window.db, 'orders/' + orderKey));
         }
     };
+
+    // Nút Hoàn thành đơn
+    window.completeOrder = function(orderKey) {
+        if(confirm("Đánh dấu đơn hàng này đã được giao thành công cho khách?")) {
+            window.update(window.ref(window.db, 'orders/' + orderKey), {
+                status: 'completed'
+            });
+        }
+    };
+
     onValue(ref(db, 'orders/'), (snapshot) => {
         const data = snapshot.val();
         ordersTableBody.innerHTML = ''; 
@@ -242,8 +255,22 @@
                     '<span style="background:#e8f5e9; color:#2e7d32; padding:5px 10px; border-radius:15px; font-size:0.85rem; font-weight:bold;">COD</span>' : 
                     '<span style="background:#fff3e0; color:#ef6c00; padding:5px 10px; border-radius:15px; font-size:0.85rem; font-weight:bold;">Chuyển khoản</span>';
                 
+                // Trích xuất trạng thái
                 const isCancelled = order.status === 'cancelled';
-                const statusBadge = isCancelled ? `<div style="display:inline-block; background:#e74c3c; color:white; padding:4px 8px; border-radius:12px; font-size:0.8rem; font-weight:bold; margin-bottom:5px;">🚫 ĐÃ HỦY TỪ KHÁCH</div><br>` : '';
+                const isCompleted = order.status === 'completed';
+                const isPending = !isCancelled && !isCompleted;
+
+                // Chọn màu nền dòng dữ liệu
+                let rowStyle = '';
+                if (isCancelled) rowStyle = 'opacity: 0.85; background: #fdf2f2;';
+                else if (isCompleted) rowStyle = 'background: #f0fdf4;'; // Xanh lá rất nhạt
+
+                // Tạo Badge trạng thái
+                let statusBadge = '';
+                if (isCancelled) statusBadge = `<div style="display:inline-block; background:#e74c3c; color:white; padding:4px 8px; border-radius:12px; font-size:0.8rem; font-weight:bold; margin-bottom:5px;">🚫 ĐÃ HỦY TỪ KHÁCH</div><br>`;
+                else if (isCompleted) statusBadge = `<div style="display:inline-block; background:#2ecc71; color:white; padding:4px 8px; border-radius:12px; font-size:0.8rem; font-weight:bold; margin-bottom:5px;">✅ ĐÃ HOÀN THÀNH</div><br>`;
+                else statusBadge = `<div style="display:inline-block; background:#f39c12; color:white; padding:4px 8px; border-radius:12px; font-size:0.8rem; font-weight:bold; margin-bottom:5px;">⏳ CHƯA HOÀN THÀNH</div><br>`;
+
                 const cancelReasonHtml = isCancelled && order.cancelReason ? `<div style="margin-top: 5px; padding: 5px; background: #ffebee; border-left: 3px solid #e74c3c; font-size: 0.85rem; color: #c0392b;"><i>🚫 Lý do hủy: ${order.cancelReason}</i></div>` : '';
                 const noteHtml = order.customerNote ? `<div style="margin-top: 5px; padding: 5px; background: #fffae6; border-left: 3px solid #f1b347; font-size: 0.85rem; color: #555;"><i>📝 Ghi chú: ${order.customerNote}</i></div>` : '';
 
@@ -251,12 +278,21 @@
                 const pricePerItem = order.productPrice || "?";
                 const total = order.totalPrice || "?";
 
-                const actionBtn = isCancelled 
-                    ? `<button onclick="deleteOrder('${order.key}')" class="btn-danger">Xóa bản ghi</button>`
-                    : `<button onclick="deleteOrder('${order.key}')" class="btn-primary" style="background:#2ecc71;">Đã xử lý</button>`;
+                // Chọn Hành Động phù hợp theo trạng thái
+                let actionBtn = '';
+                if (isCancelled) {
+                    actionBtn = `<button onclick="deleteOrder('${order.key}')" class="btn-danger">Xóa bản ghi</button>`;
+                } else if (isCompleted) {
+                    actionBtn = `<button onclick="deleteOrder('${order.key}')" class="btn-danger" style="background:#95a5a6;">Xóa lịch sử</button>`;
+                } else {
+                    actionBtn = `
+                        <button onclick="completeOrder('${order.key}')" class="btn-primary" style="background:#2ecc71; margin-bottom: 8px; width: 100%;">Giao thành công</button><br>
+                        <button onclick="deleteOrder('${order.key}')" class="btn-danger" style="font-size: 0.85rem; width: 100%;">Xóa đơn</button>
+                    `;
+                }
 
                 ordersTableBody.innerHTML += `
-                    <tr style="${isCancelled ? 'opacity: 0.85; background: #fdf2f2;' : ''}">
+                    <tr style="${rowStyle}">
                         <td style="color: #666; font-size: 0.85rem;">${timeString}</td>
                         <td>
                             ${statusBadge}
@@ -277,7 +313,7 @@
                             </div>
                         </td>
                         <td style="text-align: center;">${paymentBadge}</td>
-                        <td style="text-align: center;">${actionBtn}</td>
+                        <td style="text-align: center; vertical-align: top;">${actionBtn}</td>
                     </tr>
                 `;
             });
